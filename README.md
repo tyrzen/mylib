@@ -26,6 +26,9 @@ mylib/
 ├── cmd/
 │   └── rest/
 │       └── main.go
+├── lib/
+│   └── revalid/
+│       └── revalid.go
 ├── mig/
 │   └── ###_migration.sql
 ├── docker-compose.yml
