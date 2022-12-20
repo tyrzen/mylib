@@ -1,4 +1,4 @@
-package revalid
+package valid
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const defaultKey = "revalid"
+const defaultKey = "valid"
 
 var ErrUnexpected = errors.New("unexpected error occurred")
 var ErrValidating = errors.New("validation error")
