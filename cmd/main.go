@@ -1,9 +1,20 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"os"
+
+	"mylib/app/ent"
+	"mylib/cfg"
+	"mylib/lgr"
 )
 
 func main() {
-	fmt.Println("Hey")
+	if err := cfg.Load(); err != nil {
+		log.Fatalf("failed loading environment variables: %v", err)
+	}
+
+	log := ent.Logger(lgr.New(os.Getenv("LOG_LEVEL")))
+
+	_ = log
 }

@@ -2,26 +2,34 @@ package lgr
 
 import (
 	"log"
+	"os"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-type Level string
-
 const (
-	Debug Level = "DEBUG"
-	Info  Level = "INFO"
-	Warn  Level = "WARN"
-	Error Level = "ERROR"
+	DebugLevel = "DEBUG"
+	InfoLevel  = "INFO"
+	WarnLevel  = "WARN"
+	ErrorLevel = "ERROR"
 )
+
+const FilePath = "app.log"
 
 type Log struct{ core *zap.SugaredLogger }
 
-func New(level Level) Log {
-	lvl, err := zap.ParseAtomicLevel(string(level))
+func New(level string) *Log {
+	file, err := os.Create(FilePath)
 	if err != nil {
-		log.Fatalf("failed logger level: %v", err)
+		log.Fatalf("failed creating logger file : %v", err)
+	}
+
+	defer file.Close()
+
+	lvl, err := zap.ParseAtomicLevel(level)
+	if err != nil {
+		log.Panicf("failed logger level: %v", err)
 	}
 
 	enc := zapcore.EncoderConfig{
@@ -34,12 +42,12 @@ func New(level Level) Log {
 		StacktraceKey:       "stacktrace",
 		SkipLineEnding:      false,
 		LineEnding:          "\n",
-		EncodeLevel:         zapcore.CapitalLevelEncoder,
+		EncodeLevel:         zapcore.CapitalColorLevelEncoder,
 		EncodeTime:          zapcore.ISO8601TimeEncoder,
 		EncodeDuration:      zapcore.StringDurationEncoder,
 		EncodeCaller:        zapcore.ShortCallerEncoder,
 		NewReflectedEncoder: nil,
-		ConsoleSeparator:    "",
+		ConsoleSeparator:    "\n",
 	}
 
 	cfg := zap.Config{
@@ -47,16 +55,16 @@ func New(level Level) Log {
 		Development:      true,
 		Encoding:         "console",
 		EncoderConfig:    enc,
-		OutputPaths:      []string{"stdout", "/app.log"},
-		ErrorOutputPaths: []string{"stderr", "/app.log"},
+		OutputPaths:      []string{"stdout", FilePath},
+		ErrorOutputPaths: []string{"stderr", FilePath},
 	}
 
 	logger, err := cfg.Build()
 	if err != nil {
-		log.Fatalf("failed creating logger: %v", err)
+		log.Fatalf("failed build logger: %v", err)
 	}
 
-	return Log{logger.Sugar()}
+	return &Log{logger.Sugar()}
 }
 
 func (log *Log) Debugf(format string, keyVal ...any) {

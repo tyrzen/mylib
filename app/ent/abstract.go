@@ -1,4 +1,4 @@
-package lgr
+package ent
 
 // Logger is interface to be implemented
 // on different layers of application.

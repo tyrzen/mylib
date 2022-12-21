@@ -10,8 +10,11 @@ import (
 
 const defaultKey = "valid"
 
-var ErrUnexpected = errors.New("unexpected error occurred")
+// ErrValidating will appear in case of validation error.
 var ErrValidating = errors.New("validation error")
+
+// ErrUnexpected made in case of panic.
+var ErrUnexpected = errors.New("unexpected error occurred")
 
 // ValidationError is what it is
 // we can catch it type in logistics level.
