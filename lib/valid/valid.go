@@ -111,20 +111,19 @@ func GetTagValue(tag reflect.StructTag, key string) (string, bool) {
 	return "", false
 }
 
-func inspectSource(src interface{}) (*reflect.Value, error) {
-	var err error
+func inspectSource(src interface{}) (srcValue *reflect.Value, err error) {
 	defer func() {
 		if recover() != nil {
 			err = ErrUnexpected
 		}
 	}()
 
-	srcValue := reflect.Indirect(reflect.ValueOf(src))
+	*srcValue = reflect.Indirect(reflect.ValueOf(src))
 
 	if srcType := srcValue.Kind(); srcType != reflect.Struct {
 		return nil,
 			fmt.Errorf("input value must be struct, got: %v", srcType)
 	}
 
-	return &srcValue, err
+	return srcValue, nil
 }

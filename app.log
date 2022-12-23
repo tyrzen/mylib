@@ -1,5 +1,4 @@
-2022-12-21T05:22:10.722+0200
-DEBUG
-lgr/logger.go:77
-bla bla bla
-{"key": "val"}
+2022-12-23T05:50:02.520+0200
+[34mINFO[0m
+lgr/logger.go:79
+Logger set up with log level DEBUG

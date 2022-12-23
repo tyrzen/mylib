@@ -25,9 +25,7 @@ linters:
     - gocyclo # Computes and checks the cyclomatic complexity of functions [fast: true, auto-fix: false]
     - godot # Check if comments end in a period [fast: true, auto-fix: true]
     - godox # Tool for detection of FIXME, TODO and other comment keywords [fast: true, auto-fix: false]
-    - gofmt # Gofmt checks whether code was gofmt-ed. By default this tool runs with -s option to check for code simplification [fast: true, auto-fix: true]
     - goheader # Checks is file header matches to pattern [fast: true, auto-fix: false]
-    - gofumpt
     - goimports # In addition to fixing imports, goimports also formats your code in the same style as gofmt. [fast: true, auto-fix: true]
     - gomnd # An analyzer to detect magic numbers. [fast: true, auto-fix: false]
     - gomoddirectives # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod. [fast: true, auto-fix: false]

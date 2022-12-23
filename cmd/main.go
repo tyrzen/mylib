@@ -14,7 +14,10 @@ func main() {
 		log.Fatalf("failed loading environment variables: %v", err)
 	}
 
-	log := ent.Logger(lgr.New(os.Getenv("LOG_LEVEL")))
+	logLvl := os.Getenv("LOG_LEVEL")
 
-	_ = log
+	var log ent.Logger = lgr.New(logLvl)
+
+	log.Infof("Logger set up with log level %s", logLvl)
+
 }
