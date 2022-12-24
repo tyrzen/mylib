@@ -15,18 +15,11 @@ const (
 	ErrorLevel = "ERROR"
 )
 
-const FilePath = "app.log"
+const FilePath = "log.json"
 
 type Log struct{ core *zap.SugaredLogger }
 
 func New(level string) *Log {
-	file, err := os.Create(FilePath)
-	if err != nil {
-		log.Fatalf("failed creating logger file : %v", err)
-	}
-
-	defer file.Close()
-
 	lvl, err := zap.ParseAtomicLevel(level)
 	if err != nil {
 		log.Panicf("failed logger level: %v", err)
@@ -35,7 +28,7 @@ func New(level string) *Log {
 	enc := zapcore.EncoderConfig{
 		MessageKey:          "message",
 		LevelKey:            "level",
-		TimeKey:             "timestamp",
+		TimeKey:             "time",
 		NameKey:             "name",
 		CallerKey:           "caller",
 		FunctionKey:         "",
@@ -44,27 +37,25 @@ func New(level string) *Log {
 		LineEnding:          "\n",
 		EncodeLevel:         zapcore.CapitalColorLevelEncoder,
 		EncodeTime:          zapcore.ISO8601TimeEncoder,
-		EncodeDuration:      zapcore.StringDurationEncoder,
+		EncodeDuration:      zapcore.NanosDurationEncoder,
 		EncodeCaller:        zapcore.ShortCallerEncoder,
 		NewReflectedEncoder: nil,
-		ConsoleSeparator:    "\n",
+		ConsoleSeparator:    "\t",
 	}
 
-	cfg := zap.Config{
-		Level:            lvl,
-		Development:      true,
-		Encoding:         "console",
-		EncoderConfig:    enc,
-		OutputPaths:      []string{"stdout", FilePath},
-		ErrorOutputPaths: []string{"stderr", FilePath},
-	}
-
-	logger, err := cfg.Build()
+	file, err := os.Create(FilePath)
 	if err != nil {
-		log.Fatalf("failed build logger: %v", err)
+		log.Fatalf("failed creating logger file : %v", err)
 	}
 
-	return &Log{logger.Sugar()}
+	cores := []zapcore.Core{
+		zapcore.NewCore(zapcore.NewConsoleEncoder(enc), zapcore.Lock(os.Stderr), lvl.Level()),
+		zapcore.NewCore(zapcore.NewJSONEncoder(enc), zapcore.Lock(file), lvl.Level()),
+	}
+
+	core := zapcore.NewTee(cores...)
+
+	return &Log{zap.New(core).Sugar()}
 }
 
 func (log *Log) Debugf(format string, keyVal ...any) {
