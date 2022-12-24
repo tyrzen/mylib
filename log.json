@@ -1,1 +1,5 @@
-{"level":"\u001b[34mINFO\u001b[0m","time":"2022-12-24T04:28:41.187+0200","message":"Logger set up with log level DEBUG"}
+{
+  "level": "INFO",
+  "time": "2022-12-24T07:34:45.386+0200",
+  "message": "Logger set up with log level: debug"
+}

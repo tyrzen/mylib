@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"mylib/app/ent"
 	"mylib/cfg"
@@ -11,13 +10,15 @@ import (
 
 func main() {
 	if err := cfg.Load(); err != nil {
-		log.Fatalf("failed loading environment variables: %v", err)
+		log.Fatalf("Failed to load environment variables: %+v", err)
 	}
 
-	logLvl := os.Getenv("LOG_LEVEL")
+	var logger ent.Logger = lgr.New()
+	defer func() {
+		if err := logger.Flush(); err != nil {
+			log.Printf("Failed flush logger: %+v", err)
+		}
+	}()
 
-	var log ent.Logger = lgr.New(logLvl)
-
-	log.Infof("Logger set up with log level %s", logLvl)
-
+	logger.Infof("Logger set up with level: %s", logger.Level())
 }

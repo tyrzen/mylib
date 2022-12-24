@@ -15,17 +15,20 @@ const (
 	ErrorLevel = "ERROR"
 )
 
-const FilePath = "log.json"
-
 type Log struct{ core *zap.SugaredLogger }
 
-func New(level string) *Log {
-	lvl, err := zap.ParseAtomicLevel(level)
-	if err != nil {
-		log.Panicf("failed logger level: %v", err)
+func New() *Log {
+	lvl := os.Getenv("LOG_LEVEL")
+	if lvl == "" {
+		lvl = DebugLevel
 	}
 
-	enc := zapcore.EncoderConfig{
+	atomLvl, err := zap.ParseAtomicLevel(lvl)
+	if err != nil {
+		log.Panicf("failed to parse logger level: %v", err)
+	}
+
+	encConsoleCfg := zapcore.EncoderConfig{
 		MessageKey:          "message",
 		LevelKey:            "level",
 		TimeKey:             "time",
@@ -43,19 +46,30 @@ func New(level string) *Log {
 		ConsoleSeparator:    "\t",
 	}
 
-	file, err := os.Create(FilePath)
+	encFileCfg := encConsoleCfg
+	encFileCfg.EncodeLevel = zapcore.CapitalLevelEncoder
+
+	file, err := os.Create(os.Getenv("LOG_FILE"))
 	if err != nil {
 		log.Fatalf("failed creating logger file : %v", err)
 	}
 
 	cores := []zapcore.Core{
-		zapcore.NewCore(zapcore.NewConsoleEncoder(enc), zapcore.Lock(os.Stderr), lvl.Level()),
-		zapcore.NewCore(zapcore.NewJSONEncoder(enc), zapcore.Lock(file), lvl.Level()),
+		zapcore.NewCore(zapcore.NewConsoleEncoder(encConsoleCfg), zapcore.Lock(os.Stderr), atomLvl.Level()),
+		zapcore.NewCore(zapcore.NewJSONEncoder(encFileCfg), zapcore.Lock(file), atomLvl.Level()),
 	}
 
 	core := zapcore.NewTee(cores...)
 
 	return &Log{zap.New(core).Sugar()}
+}
+
+func (log *Log) Level() string {
+	return log.core.Level().String()
+}
+
+func (log *Log) Flush() error {
+	return log.core.Sync()
 }
 
 func (log *Log) Debugf(format string, keyVal ...any) {

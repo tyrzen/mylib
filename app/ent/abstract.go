@@ -3,6 +3,8 @@ package ent
 // Logger is interface to be implemented
 // on different layers of application.
 type Logger interface {
+	Flush() error
+	Level() string
 	Debugf(string, ...any)
 	Debugw(string, ...any)
 	Infof(string, ...any)
