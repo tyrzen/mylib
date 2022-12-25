@@ -24,7 +24,7 @@ func Connect() (*sql.DB, error) {
 
 	err = db.Ping()
 	if err != nil {
-		return nil, fmt.Errorf("error pinging conneciton: %w", err)
+		return nil, fmt.Errorf("error pinging connection: %w", err)
 	}
 
 	return db, nil

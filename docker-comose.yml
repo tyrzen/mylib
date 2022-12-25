@@ -4,7 +4,7 @@ services:
   repo:
     image: postgres:15.1-alpine
     restart: always
-    container_name: mylib_data
+    container_name: mylib_repo
     ports:
       - ${REPO_PORT}:${REPO_PORT}
     environment:
@@ -12,6 +12,6 @@ services:
       - POSTGRES_USER=${REPO_USER}
       - POSTGRES_PASSWORD=${REPO_PASSWORD}
     volumes:
-      - repo:/var/lib/postgresql/data
+      - repo_data:/var/lib/postgresql/data
 volumes:
-  repo:
+  repo_data:

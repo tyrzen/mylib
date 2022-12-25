@@ -1,5 +1,5 @@
 package logic
 
-type ReaderRepo interface{}
+type ReaderRepository interface{}
 
-type BookRepo interface{}
+type BookRepository interface{}

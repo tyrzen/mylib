@@ -1,7 +1,13 @@
 package logic
 
-import "mylib/app/ent"
+import "github.com/delveper/mylib/app/ent"
 
-type Logic struct {
-	log ent.Logger
+type ReaderService struct {
+	repo   ReaderRepository
+	logger ent.Logger
+}
+
+type BookService struct {
+	repo   BookRepository
+	logger ent.Logger
 }

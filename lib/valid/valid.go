@@ -42,8 +42,8 @@ func (vErr *ValidationError) Error() string {
 }
 
 // ValidateStruct validates struct fields
-// according to given regex tag
-func ValidateStruct(src interface{}) (err error) {
+// according to given regex tag.
+func ValidateStruct(src any) (err error) {
 	// check if src is a struct
 	srcValue, err := inspectSource(src)
 	if err != nil {
@@ -65,7 +65,7 @@ func ValidateStruct(src interface{}) (err error) {
 	for i := 0; i < srcValue.NumField(); i++ {
 		fieldValue := srcValue.Field(i)
 		fieldName := srcValue.Type().Field(i).Name
-		tagValue := srcValue.Type().Field(i).Tag
+		tagValue := string(srcValue.Type().Field(i).Tag)
 		// check presence of regex tag (.Tag.Lookup() would not work here)
 		if pattern, ok := getTagValue(tagValue, defaultKey); ok {
 			if fieldValue.IsZero() {
@@ -97,10 +97,11 @@ func ValidateStruct(src interface{}) (err error) {
 	return nil
 }
 
-// getTagValue is designed because luck of functionality in reflect.Tag.Lookup()
-// and help retrieve <value> in given <key> from struct fields
-func getTagValue(tag reflect.StructTag, key string) (string, bool) {
-	tagStr := fmt.Sprintf("%v", tag)
+// getTagValue address the problem of looking
+// for <key>/<val> pairs of struct tag fields
+// which is not solved by reflect.Tag.Lookup())
+func getTagValue(tag string, key string) (string, bool) {
+	tagStr := fmt.Sprintf("%v", reflect.StructTag(tag))
 	tagValue := fmt.Sprintf(`(?s)(?i)\s*(?P<key>%s):\"(?P<value>[^\"]+)\"`, key)
 
 	if match := regexp.MustCompile(tagValue).
@@ -111,7 +112,7 @@ func getTagValue(tag reflect.StructTag, key string) (string, bool) {
 	return "", false
 }
 
-func inspectSource(src interface{}) (srcValue *reflect.Value, err error) {
+func inspectSource(src any) (srcValue *reflect.Value, err error) {
 	defer func() {
 		if recover() != nil {
 			err = ErrUnexpected
