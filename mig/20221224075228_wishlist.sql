@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE table wishlist_books
+CREATE table wishlist
 (
     reader_id UUID NOT NULL REFERENCES readers (id),
     book_id   UUID NOT NULL REFERENCES books (id)
@@ -9,5 +9,5 @@ CREATE table wishlist_books
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE wishlist_books;
+DROP TABLE wishlist;
 -- +goose StatementEnd

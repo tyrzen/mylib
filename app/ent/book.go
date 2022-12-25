@@ -3,10 +3,10 @@ package ent
 import "time"
 
 type Book struct {
-	ID       string    `json:"id"`
-	AuthorID string    `json:"author_id"`
-	Title    string    `json:"title"`
-	Genre    string    `json:"genre"`
-	Rate     int       `json:"rate"`
-	WroteAt  time.Time `json:"wrote_at"`
+	ID        string    `json:"id" valid:"(?i)^[0-9a-f]{8}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{12}$"`
+	AuthorID  string    `json:"author_id" valid:"(?i)^[0-9a-f]{8}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{12}$"`
+	Title     string    `json:"title" valid:"^[[:graph:]]{1,256}$"`
+	Genre     string    `json:"genre"`
+	Rate      int       `json:"rate"`
+	CreatedAt time.Time `json:"created_at"`
 }

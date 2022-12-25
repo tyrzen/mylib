@@ -4,36 +4,42 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"io/fs"
+	"os"
 
 	"github.com/pressly/goose/v3"
 )
 
 // go:embed *.sql
-
 var FS embed.FS // will be used as mig.FS in main pkg
 
-func MigrateFS(db *sql.DB, migFS fs.FS, dir string) error {
-	if dir == "" {
-		dir = "."
-	}
+const (
+	UpDirection   = "up"
+	DownDirection = "down"
+)
 
-	goose.SetBaseFS(migFS)
-
+func Migrate(db *sql.DB) error {
+	goose.SetBaseFS(FS)
 	defer func() {
 		goose.SetBaseFS(nil)
 	}()
 
-	return Migrate(db, dir)
-}
-
-func Migrate(db *sql.DB, dir string) error {
-	if err := goose.SetDialect("postgres"); err != nil {
+	d := os.Getenv("REPO_DIALECT")
+	if err := goose.SetDialect(d); err != nil {
 		return fmt.Errorf("error setting dialect: %w", err)
 	}
 
-	if err := goose.Up(db, dir); err != nil {
-		return fmt.Errorf("error making mingrations up: %w", err)
+	direction := os.Getenv("REPO_MIGRATION")
+	switch direction {
+	case UpDirection:
+		if err := goose.Up(db, "."); err != nil {
+			return fmt.Errorf("error running mingrations up: %w", err)
+		}
+	case DownDirection:
+		if err := goose.Down(db, "."); err != nil {
+			return fmt.Errorf("error run mingrations down: %w", err)
+		}
+	default:
+		return fmt.Errorf("wrong direction argument: %s", direction)
 	}
 
 	return nil

@@ -33,7 +33,7 @@ func (vErr *ValidationError) Error() string {
 		vErr.code = "valid" + " "
 	}
 
-	return strings.ToLower(fmt.Sprintf("%s has to have %s%s accroding to pattern: `%s`",
+	return strings.ToLower(fmt.Sprintf("%s has to have %s%s according to the pattern: `%s`",
 		vErr.entity,
 		vErr.code,
 		vErr.property,
@@ -67,7 +67,7 @@ func ValidateStruct(src interface{}) (err error) {
 		fieldName := srcValue.Type().Field(i).Name
 		tagValue := srcValue.Type().Field(i).Tag
 		// check presence of regex tag (.Tag.Lookup() would not work here)
-		if pattern, ok := GetTagValue(tagValue, defaultKey); ok {
+		if pattern, ok := getTagValue(tagValue, defaultKey); ok {
 			if fieldValue.IsZero() {
 				return fmt.Errorf("%v: %w", ErrValidating,
 					&ValidationError{
@@ -97,9 +97,9 @@ func ValidateStruct(src interface{}) (err error) {
 	return nil
 }
 
-// GetTagValue is designed because luck of functionality in reflect.Tag.Lookup()
+// getTagValue is designed because luck of functionality in reflect.Tag.Lookup()
 // and help retrieve <value> in given <key> from struct fields
-func GetTagValue(tag reflect.StructTag, key string) (string, bool) {
+func getTagValue(tag reflect.StructTag, key string) (string, bool) {
 	tagStr := fmt.Sprintf("%v", tag)
 	tagValue := fmt.Sprintf(`(?s)(?i)\s*(?P<key>%s):\"(?P<value>[^\"]+)\"`, key)
 
