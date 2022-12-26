@@ -13,5 +13,14 @@ services:
       - POSTGRES_PASSWORD=${REPO_PASSWORD}
     volumes:
       - repo_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: mylib_rest_api
+    ports:
+      - ${SRV_PORT}:${SRV_PORT}
+    depends_on:
+      - repo
+
 volumes:
   repo_data:
