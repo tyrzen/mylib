@@ -1,5 +1,1 @@
-{
-  "level": "INFO",
-  "time": "2022-12-24T07:34:45.386+0200",
-  "message": "Logger set up with log level: debug"
-}
+{"level":"INFO","time":"2022-12-29T04:15:29.068+0200","message":"Logger set up with level: debug"}

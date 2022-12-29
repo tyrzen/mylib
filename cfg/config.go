@@ -28,7 +28,7 @@ func Load() (err error) {
 	buf.Split(bufio.ScanLines)
 
 	for buf.Scan() {
-		if keyVal := strings.Split(buf.Text(), separator); keyVal != nil {
+		if keyVal := strings.Split(buf.Text(), separator); len(keyVal) > 1 {
 			if err := os.Setenv(keyVal[0], keyVal[1]); err != nil {
 				return fmt.Errorf("error setting environment variable: %w", err)
 			}

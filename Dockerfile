@@ -1,9 +1,9 @@
-FROM golang:bullseye as BUILDER
-RUN  mkdir /app
-ADD . /app
-WORKDIR /app
-RUN CGO_ENABLED=0 GOOS=linux go build -o app cmd/main.go
+FROM golang:1-alpine3.17 as builder
+RUN  mkdir /myapp
+ADD . /myapp
+WORKDIR /myapp
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o myapp ./cmd/main.go
 
-FROM alpine:latest as PRODUCT
-COPY --from=BUILDER /app .
-CMD ["./app"]
+FROM alpine:3.17 as product
+COPY --from=builder /myapp .
+ENTRYPOINT ["./myapp"]

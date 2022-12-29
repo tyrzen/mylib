@@ -2,25 +2,34 @@ version: "3.9"
 
 services:
   repo:
-    image: postgres:15.1-alpine
+    image: postgres:15.1-alpine3.17
     restart: always
     container_name: mylib_repo
     ports:
-      - ${REPO_PORT}:${REPO_PORT}
+      - ${REPO_HOST_PORT}:${REPO_PORT}
     environment:
       - POSTGRES_DB=${REPO_NAME}
       - POSTGRES_USER=${REPO_USER}
       - POSTGRES_PASSWORD=${REPO_PASSWORD}
     volumes:
       - repo_data:/var/lib/postgresql/data
-
+    networks:
+      - mylib
   api:
     build: .
     container_name: mylib_rest_api
+    privileged: true
+    user: ${UID}:${GID}
     ports:
       - ${SRV_PORT}:${SRV_PORT}
     depends_on:
       - repo
+    networks:
+      - mylib
 
 volumes:
   repo_data:
+
+networks:
+  mylib:
+    driver: bridge

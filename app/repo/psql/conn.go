@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5" // "github.com/jackc/pgx/v5/pgxpool"
 )
 
 func Connect() (*sql.DB, error) {
@@ -17,7 +17,9 @@ func Connect() (*sql.DB, error) {
 		os.Getenv("REPO_NAME"),
 	)
 
-	db, err := sql.Open(os.Getenv("REPO_DIALECT"), DSN)
+	d := os.Getenv("REPO_DIALECT") // pgx
+
+	db, err := sql.Open(d, DSN)
 	if err != nil {
 		return nil, fmt.Errorf("error onening connection to repo: %w", err)
 	}
