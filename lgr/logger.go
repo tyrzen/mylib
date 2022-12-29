@@ -72,34 +72,54 @@ func (log *Log) Flush() error {
 	return log.core.Sync()
 }
 
-func (log *Log) Debugf(format string, keyVal ...any) {
+func (log *Log) Debugf(format string, keyVal ...interface{}) {
 	log.core.Debugf(format, keyVal...)
 }
 
-func (log *Log) Debugw(format string, keyVal ...any) {
+func (log *Log) Debugw(format string, keyVal ...interface{}) {
 	log.core.Debugw(format, keyVal...)
 }
 
-func (log *Log) Infof(format string, keyVal ...any) {
+func (log *Log) Infof(format string, keyVal ...interface{}) {
 	log.core.Infof(format, keyVal...)
 }
 
-func (log *Log) Infow(format string, keyVal ...any) {
+func (log *Log) Infow(format string, keyVal ...interface{}) {
 	log.core.Infow(format, keyVal...)
 }
 
-func (log *Log) Warnf(format string, keyVal ...any) {
+func (log *Log) Warnf(format string, keyVal ...interface{}) {
 	log.core.Warnf(format, keyVal...)
 }
 
-func (log *Log) Warnw(format string, keyVal ...any) {
+func (log *Log) Warnw(format string, keyVal ...interface{}) {
 	log.core.Warnw(format, keyVal...)
 }
 
-func (log *Log) Errorf(format string, keyVal ...any) {
+func (log *Log) Errorf(format string, keyVal ...interface{}) {
 	log.core.Errorf(format, keyVal...)
 }
 
-func (log *Log) Errorw(format string, keyVal ...any) {
+func (log *Log) Errorw(format string, keyVal ...interface{}) {
 	log.core.Errorw(format, keyVal...)
+}
+
+func (log *Log) Fatal(keyVal ...interface{}) {
+	log.core.Fatal(keyVal...)
+}
+
+func (log *Log) Fatalf(format string, keyVal ...interface{}) {
+	log.core.Fatalf(format, keyVal...)
+}
+
+func (log *Log) Print(keyVal ...interface{}) {
+	log.core.Info(keyVal...)
+}
+
+func (log *Log) Println(keyVal ...interface{}) {
+	log.core.Infoln(keyVal...)
+}
+
+func (log *Log) Printf(format string, keyVal ...interface{}) {
+	log.core.Infof(format, keyVal...)
 }

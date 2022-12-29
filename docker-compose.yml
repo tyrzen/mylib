@@ -6,11 +6,11 @@ services:
     restart: always
     container_name: mylib_repo
     ports:
-      - ${REPO_HOST_PORT}:${REPO_PORT}
+      - ${DB_HOST_PORT}:${DB_PORT}
     environment:
-      - POSTGRES_DB=${REPO_NAME}
-      - POSTGRES_USER=${REPO_USER}
-      - POSTGRES_PASSWORD=${REPO_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - repo_data:/var/lib/postgresql/data
     networks:
@@ -19,7 +19,6 @@ services:
     build: .
     container_name: mylib_rest_api
     privileged: true
-    user: ${UID}:${GID}
     ports:
       - ${SRV_PORT}:${SRV_PORT}
     depends_on:

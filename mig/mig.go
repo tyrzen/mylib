@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/delveper/mylib/app/ent"
 	"github.com/pressly/goose/v3"
 )
 
@@ -17,18 +18,20 @@ const (
 	DownDirection = "down"
 )
 
-func Migrate(db *sql.DB) error {
+func Migrate(db *sql.DB, logger ent.Logger) error {
+	goose.SetLogger(logger)
+
 	goose.SetBaseFS(FS)
 	defer func() {
 		goose.SetBaseFS(nil)
 	}()
 
-	d := os.Getenv("REPO_DIALECT")
+	d := os.Getenv("DB_DIALECT")
 	if err := goose.SetDialect(d); err != nil {
 		return fmt.Errorf("error setting dialect: %w", err)
 	}
 
-	direction := os.Getenv("REPO_MIGRATION")
+	direction := os.Getenv("DB_MIGRATE")
 	switch direction {
 	case UpDirection:
 		if err := goose.Up(db, "."); err != nil {

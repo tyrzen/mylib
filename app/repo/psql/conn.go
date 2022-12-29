@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"os"
 
-	_ "github.com/jackc/pgx/v5" // "github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib" // "github.com/jackc/pgx/v5/pgxpool"
 )
 
 func Connect() (*sql.DB, error) {
 	DSN := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		os.Getenv("REPO_HOST"),
-		os.Getenv("REPO_PORT"),
-		os.Getenv("REPO_USER"),
-		os.Getenv("REPO_PASSWORD"),
-		os.Getenv("REPO_NAME"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_HOST_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
 	)
 
-	d := os.Getenv("REPO_DIALECT") // pgx
+	d := os.Getenv("DB_DIALECT") // pgx
 
 	db, err := sql.Open(d, DSN)
 	if err != nil {

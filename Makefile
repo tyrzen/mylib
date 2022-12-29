@@ -2,7 +2,11 @@ ENV := .env
 .PHONY: build up start down remove stop restart logs logs-save
 
 include $(ENV)
+# App
+run:
+	go run ./cmd/main.go
 
+# Docker
 build:
 	docker-compose --verbose --file $(DOCKER_COMPOSE_FILE) --env-file $(ENV)  --log-level $(LOG_LEVEL) build
 rebuild: clean
