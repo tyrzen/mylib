@@ -7,30 +7,25 @@ import (
 	"strings"
 )
 
-const (
-	separator = "="
-	envPath   = ".env"
-)
-
 func Load() (err error) {
-	file, err := os.Open(envPath)
+	env, err := os.Open(".env")
 	if err != nil {
-		return fmt.Errorf("error loading %s: %w", envPath, err)
+		return fmt.Errorf("error during opening environment file: %w", err)
 	}
 
 	defer func() {
-		if e := file.Close(); e != nil {
-			err = fmt.Errorf("error closing %s: %w", envPath, e)
+		if err = env.Close(); err != nil {
+			err = fmt.Errorf("error during closing environment file: %w", err)
 		}
 	}()
 
-	buf := bufio.NewScanner(file)
+	buf := bufio.NewScanner(env)
 	buf.Split(bufio.ScanLines)
 
 	for buf.Scan() {
-		if keyVal := strings.Split(buf.Text(), separator); len(keyVal) > 1 {
+		if keyVal := strings.Split(buf.Text(), "="); len(keyVal) > 1 {
 			if err := os.Setenv(keyVal[0], keyVal[1]); err != nil {
-				return fmt.Errorf("error setting environment variable: %w", err)
+				return fmt.Errorf("error during setting environment variable: %w", err)
 			}
 		}
 	}

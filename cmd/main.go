@@ -4,16 +4,16 @@ import (
 	"log"
 
 	"github.com/delveper/mylib/app/ent"
+	"github.com/delveper/mylib/app/lgr"
 	repo "github.com/delveper/mylib/app/repo/psql"
+	"github.com/delveper/mylib/app/trans/rest"
 	"github.com/delveper/mylib/cfg"
-	"github.com/delveper/mylib/lgr"
 	"github.com/delveper/mylib/mig"
 )
 
 func main() {
 	if err := cfg.Load(); err != nil {
 		log.Printf("Failed to load environment variables: %+v", err)
-
 		return
 	}
 
@@ -29,7 +29,6 @@ func main() {
 	conn, err := repo.Connect()
 	if err != nil {
 		logger.Errorf("Failed connecting to repo: %+v", err)
-
 		return
 	}
 
@@ -40,11 +39,25 @@ func main() {
 	}()
 	logger.Infof("Connection to repo was established.")
 
-	if err := mig.Migrate(conn, logger); err != nil {
-		logger.Errorf("Failed make migrations: %+v", err)
+	migration := mig.New()
+	migration.SetLogger(logger)
 
+	if err := migration.Run(conn); err != nil {
+		logger.Errorf("Failed make migrations: %+v", err)
 		return
 	}
 
-	logger.Infof("Migrations was made successfully.")
+	reader := rest.NewReader(nil, logger)
+
+	hdl := rest.NewMux(reader.Route)
+
+	srv, err := rest.NewServer(hdl)
+	if err != nil {
+		logger.Errorf("Failed initializing server: %+v", err)
+		return
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		logger.Errorf("Failed running server: %+v", err)
+	}
 }

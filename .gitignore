@@ -7,7 +7,6 @@
 *.dll
 *.so
 *.dylib
-
 # Test binary, built with `go test -c`
 *.test
 
@@ -19,3 +18,7 @@
 
 # IDE files
 .idea
+
+# Log files
+log.*
+*.log

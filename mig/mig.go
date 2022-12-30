@@ -3,6 +3,7 @@ package mig
 import (
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"os"
 
@@ -10,35 +11,52 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-// go:embed *.sql
-var FS embed.FS // will be used as mig.FS in main pkg
+//go:embed *.sql
+var fs embed.FS
 
-const (
-	UpDirection   = "up"
-	DownDirection = "down"
-)
+const root = "."
 
-func Migrate(db *sql.DB, logger ent.Logger) error {
+type Migration struct{ *embed.FS }
+
+func New() Migration {
+	return Migration{&fs}
+}
+
+func (m Migration) SetLogger(logger ent.Logger) {
 	goose.SetLogger(logger)
+}
 
-	goose.SetBaseFS(FS)
+func (m Migration) Run(db *sql.DB) error {
+	goose.SetBaseFS(m.FS)
 	defer func() {
 		goose.SetBaseFS(nil)
 	}()
 
-	d := os.Getenv("DB_DIALECT")
+	d, ok := os.LookupEnv("DB_DIALECT")
+	if !ok {
+		return fmt.Errorf("there is no DB_DIALECT among environment variables")
+	}
+
 	if err := goose.SetDialect(d); err != nil {
 		return fmt.Errorf("error setting dialect: %w", err)
 	}
 
-	direction := os.Getenv("DB_MIGRATE")
+	direction, ok := os.LookupEnv("DB_MIGRATE")
+	if !ok {
+		return errors.New("there no DB_MIGRATE above environment variables")
+	}
+
+	if err := goose.Fix(root); err != nil {
+		return fmt.Errorf("error during fixing migrations timestamps: %w", err)
+	}
+
 	switch direction {
-	case UpDirection:
-		if err := goose.Up(db, "."); err != nil {
+	case "up":
+		if err := goose.Up(db, root); err != nil {
 			return fmt.Errorf("error running mingrations up: %w", err)
 		}
-	case DownDirection:
-		if err := goose.Down(db, "."); err != nil {
+	case "down":
+		if err := goose.Down(db, root); err != nil {
 			return fmt.Errorf("error run mingrations down: %w", err)
 		}
 	default:
