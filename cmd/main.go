@@ -49,7 +49,7 @@ func main() {
 
 	reader := rest.NewReader(nil, logger)
 
-	hdl := rest.NewMux(reader.Route)
+	hdl := rest.NewRouter(reader.Route)
 
 	srv, err := rest.NewServer(hdl)
 	if err != nil {

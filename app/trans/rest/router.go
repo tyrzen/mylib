@@ -6,7 +6,7 @@ import (
 
 type Router struct{ chi.Router }
 
-func NewMux(routes ...func(chi.Router)) Router {
+func NewRouter(routes ...func(chi.Router)) Router {
 	rtr := chi.NewRouter()
 
 	for _, r := range routes {
