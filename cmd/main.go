@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/delveper/mylib/app/ent"
 	"github.com/delveper/mylib/app/lgr"
@@ -37,19 +38,20 @@ func main() {
 			logger.Warnf("Failed closing repo connection: %+v", err)
 		}
 	}()
-	logger.Infof("Connection to repo was established.")
+	logger.Infof("Connection to repo established.")
 
 	migration := mig.New()
 	migration.SetLogger(logger)
 
 	if err := migration.Run(conn); err != nil {
-		logger.Errorf("Failed make migrations: %+v", err)
+		logger.Errorf("Failed making migrations: %+v", err)
 		return
 	}
 
 	reader := rest.NewReader(nil, logger)
 
 	rtr := rest.NewRouter(reader.Route)
+	logger.Infof("Router successfully created.")
 
 	srv, err := rest.NewServer(rtr)
 	if err != nil {
@@ -60,4 +62,5 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil {
 		logger.Errorf("Failed running server: %+v", err)
 	}
+	logger.Infof("Server started on the port: %s", os.Getenv("SRV_PORT"))
 }
