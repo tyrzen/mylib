@@ -8,7 +8,6 @@ run:
 	go run ./cmd/main.go
 
 # Migrations
-
 DB_DSN := "host=$(DB_HOST) port=$(DB_HOST_PORT) user=$(DB_USER) password=$(DB_PASSWORD) dbname=$(DB_NAME) sslmode=$(DB_SSL_MODE)"
 MIG_DIR := ./mig
 

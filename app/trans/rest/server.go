@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+func foo() () {
+
+}
+
 type Server struct{ *http.Server }
 
 func NewServer(hdl http.Handler) (*Server, error) {

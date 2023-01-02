@@ -7,12 +7,12 @@ import (
 	"github.com/delveper/mylib/app/lgr"
 	repo "github.com/delveper/mylib/app/repo/psql"
 	"github.com/delveper/mylib/app/trans/rest"
-	"github.com/delveper/mylib/cfg"
+	"github.com/delveper/mylib/env"
 	"github.com/delveper/mylib/mig"
 )
 
 func main() {
-	if err := cfg.Load(); err != nil {
+	if err := env.Load(); err != nil {
 		log.Printf("Failed to load environment variables: %+v", err)
 		return
 	}
@@ -49,9 +49,9 @@ func main() {
 
 	reader := rest.NewReader(nil, logger)
 
-	hdl := rest.NewRouter(reader.Route)
+	rtr := rest.NewRouter(reader.Route)
 
-	srv, err := rest.NewServer(hdl)
+	srv, err := rest.NewServer(rtr)
 	if err != nil {
 		logger.Errorf("Failed initializing server: %+v", err)
 		return

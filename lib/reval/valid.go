@@ -1,4 +1,4 @@
-package valid
+package reval
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const defaultKey = "valid"
+const defaultKey = "reval"
 
 // ErrValidating will appear in case of validation error.
 var ErrValidating = errors.New("validation error")
@@ -30,7 +30,7 @@ type ValidationError struct {
 // and can distinct if non-zero value was provided.
 func (vErr *ValidationError) Error() string {
 	if !vErr.isZero {
-		vErr.code = "valid" + " "
+		vErr.code = "reval" + " "
 	}
 
 	return strings.ToLower(fmt.Sprintf("%s has to have %s%s according to the pattern: `%s`",
