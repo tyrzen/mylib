@@ -5,10 +5,11 @@ import (
 	"os"
 
 	"github.com/delveper/mylib/app/ent"
-	"github.com/delveper/mylib/app/lgr"
+	"github.com/delveper/mylib/app/logic"
 	repo "github.com/delveper/mylib/app/repo/psql"
 	"github.com/delveper/mylib/app/trans/rest"
 	"github.com/delveper/mylib/env"
+	"github.com/delveper/mylib/lib/lgr"
 	"github.com/delveper/mylib/mig"
 )
 
@@ -48,9 +49,11 @@ func main() {
 		return
 	}
 
-	reader := rest.NewReader(nil, logger)
+	readerRepo := repo.NewReader(conn)
+	readerLogic := logic.NewReader(readerRepo)
+	readerREST := rest.NewReader(readerLogic, logger)
 
-	rtr := rest.NewRouter(reader.Route)
+	rtr := rest.NewRouter(readerREST.Route)
 	logger.Infof("Router successfully created.")
 
 	srv, err := rest.NewServer(rtr)

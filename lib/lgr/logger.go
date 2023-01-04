@@ -72,54 +72,54 @@ func (log *Log) Flush() error {
 	return log.core.Sync()
 }
 
-func (log *Log) Debugf(format string, keyVal ...interface{}) {
+func (log *Log) Debugf(format string, keyVal ...any) {
 	log.core.Debugf(format, keyVal...)
 }
 
-func (log *Log) Debugw(format string, keyVal ...interface{}) {
+func (log *Log) Debugw(format string, keyVal ...any) {
 	log.core.Debugw(format, keyVal...)
 }
 
-func (log *Log) Infof(format string, keyVal ...interface{}) {
+func (log *Log) Infof(format string, keyVal ...any) {
 	log.core.Infof(format, keyVal...)
 }
 
-func (log *Log) Infow(format string, keyVal ...interface{}) {
+func (log *Log) Infow(format string, keyVal ...any) {
 	log.core.Infow(format, keyVal...)
 }
 
-func (log *Log) Warnf(format string, keyVal ...interface{}) {
+func (log *Log) Warnf(format string, keyVal ...any) {
 	log.core.Warnf(format, keyVal...)
 }
 
-func (log *Log) Warnw(format string, keyVal ...interface{}) {
+func (log *Log) Warnw(format string, keyVal ...any) {
 	log.core.Warnw(format, keyVal...)
 }
 
-func (log *Log) Errorf(format string, keyVal ...interface{}) {
+func (log *Log) Errorf(format string, keyVal ...any) {
 	log.core.Errorf(format, keyVal...)
 }
 
-func (log *Log) Errorw(format string, keyVal ...interface{}) {
+func (log *Log) Errorw(format string, keyVal ...any) {
 	log.core.Errorw(format, keyVal...)
 }
 
-func (log *Log) Fatal(keyVal ...interface{}) {
+func (log *Log) Fatal(keyVal ...any) {
 	log.core.Fatal(keyVal...)
 }
 
-func (log *Log) Fatalf(format string, keyVal ...interface{}) {
+func (log *Log) Fatalf(format string, keyVal ...any) {
 	log.core.Fatalf(format, keyVal...)
 }
 
-func (log *Log) Print(keyVal ...interface{}) {
+func (log *Log) Print(keyVal ...any) {
 	log.core.Info(keyVal...)
 }
 
-func (log *Log) Println(keyVal ...interface{}) {
+func (log *Log) Println(keyVal ...any) {
 	log.core.Infoln(keyVal...)
 }
 
-func (log *Log) Printf(format string, keyVal ...interface{}) {
+func (log *Log) Printf(format string, keyVal ...any) {
 	log.core.Infof(format, keyVal...)
 }

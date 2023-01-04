@@ -1,6 +1,10 @@
 package ent
 
-import "time"
+import (
+	"time"
+
+	"github.com/delveper/mylib/lib/reval"
+)
 
 type Reader struct {
 	ID        string    `json:"id" reval:"(?i)^[0-9a-f]{8}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{12}$"`
@@ -12,6 +16,5 @@ type Reader struct {
 }
 
 func (r Reader) Validate() error {
-	// TODO implement me
-	panic("implement me")
+	return reval.ValidateStruct(r)
 }

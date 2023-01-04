@@ -16,8 +16,10 @@ var ErrValidating = errors.New("validation error")
 // ErrUnexpected made in case of panic.
 var ErrUnexpected = errors.New("unexpected error occurred")
 
-// ValidationError is what it is
-// we can catch it type in logistics level.
+// ValidationError could occur during unsuccessful validation
+// Error message will be rendered dynamically according
+// to the first inadequacy of struct field validation pattern that noted in
+// struct tag field according to regexp notation.
 type ValidationError struct {
 	entity   string
 	property string

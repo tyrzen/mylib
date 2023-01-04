@@ -7,7 +7,7 @@ CREATE TABLE readers
     last_name  TEXT DEFAULT NULL,
     email      TEXT UNIQUE NOT NULL,
     password   TEXT        NOT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NULL
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
 
 -- +goose StatementEnd

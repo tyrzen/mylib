@@ -22,7 +22,7 @@ func decodeBody(req *http.Request, val any) (err error) {
 	}()
 
 	if err := json.NewDecoder(req.Body).Decode(val); err != nil {
-		return fmt.Errorf("error decoding body: %w", err)
+		return fmt.Errorf("error decoding JSON body: %w", err)
 	}
 
 	return nil
@@ -41,7 +41,7 @@ func encodeBody(rw http.ResponseWriter, val any) error {
 	return nil
 }
 
-func respond(rw http.ResponseWriter, req *http.Request, val any, statusCode int, logger ent.Logger) {
+func respond(rw http.ResponseWriter, req *http.Request, val interface{}, statusCode int, logger ent.Logger) {
 	if val == nil && statusCode == http.StatusNoContent {
 		logger.Errorf("Invalid data, expected nil")
 

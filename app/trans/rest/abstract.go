@@ -1,11 +1,13 @@
 package rest
 
-import "github.com/delveper/mylib/app/ent"
+import (
+	"context"
+
+	"github.com/delveper/mylib/app/ent"
+)
 
 type ReaderLogic interface {
-	SignUp(ent.Reader) error
-	SignOut(ent.Reader) error
-	SignIn(ent.Reader) error
+	SignUp(context.Context, ent.Reader) error
 }
 
 type BookLogic interface {
