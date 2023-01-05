@@ -9,9 +9,47 @@ import (
 	"github.com/delveper/mylib/app/ent"
 )
 
-type Response struct {
+type response struct {
+	writer     http.ResponseWriter
+	request    *http.Request
+	Logger     ent.Logger
+	statusCode int
+	data       any
+}
+
+type Message struct {
 	Message string `json:"message"`
-	Details string `json:"details"`
+	Details string `json:"details,omitempty"`
+}
+
+func newResponse(rw http.ResponseWriter, req *http.Request, logger ent.Logger) response {
+	return response{
+		writer:  rw,
+		request: req,
+		Logger:  logger,
+	}
+}
+
+func (resp *response) Set(code int, data any) {
+	resp.statusCode = code
+	resp.data = data
+}
+
+func (resp *response) Send() {
+	resp.writer.Header().Set("Content-Type", "application/json")
+	resp.writer.WriteHeader(resp.statusCode)
+
+	if resp.data == nil {
+		if resp.statusCode != http.StatusNoContent {
+			resp.Logger.Errorf("Invalid data, expected nil")
+		}
+
+		return
+	}
+
+	if err := json.NewEncoder(resp.writer).Encode(resp.data); err != nil {
+		resp.Logger.Errorf("Failed encoding to JSON %+v; with status code %d: %+v\n", resp.data, resp.statusCode, err)
+	}
 }
 
 func decodeBody(req *http.Request, val any) (err error) {
@@ -60,7 +98,7 @@ func respond(rw http.ResponseWriter, req *http.Request, val interface{}, statusC
 	rw.WriteHeader(statusCode)
 
 	if err := decodeBody(req, val); err != nil {
-		logger.Errorw("Failed writing response from buffer.",
+		logger.Errorw("Failed writing response.",
 			"object", val,
 			"status code", statusCode,
 			"error", err,

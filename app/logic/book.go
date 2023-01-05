@@ -8,5 +8,8 @@ type Book struct {
 }
 
 func NewBook(repo BookRepository, logger ent.Logger) Book {
-	return Book{repo: repo, logger: logger}
+	return Book{
+		repo:   repo,
+		logger: logger,
+	}
 }

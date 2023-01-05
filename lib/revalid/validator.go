@@ -1,4 +1,4 @@
-package reval
+package revalid
 
 import (
 	"errors"
@@ -8,18 +8,13 @@ import (
 	"strings"
 )
 
-const defaultKey = "reval"
+const defaultKey = "revalid"
 
-// ErrValidating will appear in case of validation error.
+var ErrUnexpected = errors.New("unexpected error occurred")
 var ErrValidating = errors.New("validation error")
 
-// ErrUnexpected made in case of panic.
-var ErrUnexpected = errors.New("unexpected error occurred")
-
-// ValidationError could occur during unsuccessful validation
-// Error message will be rendered dynamically according
-// to the first inadequacy of struct field validation pattern that noted in
-// struct tag field according to regexp notation.
+// ValidationError is what it is
+// we can catch it type in logistics level.
 type ValidationError struct {
 	entity   string
 	property string
@@ -32,10 +27,10 @@ type ValidationError struct {
 // and can distinct if non-zero value was provided.
 func (vErr *ValidationError) Error() string {
 	if !vErr.isZero {
-		vErr.code = "reval" + " "
+		vErr.code = "valid" + " "
 	}
 
-	return strings.ToLower(fmt.Sprintf("%s has to have %s%s according to the pattern: `%s`",
+	return strings.ToLower(fmt.Sprintf("%s has to have %s%s according to pattern: `%s`",
 		vErr.entity,
 		vErr.code,
 		vErr.property,
@@ -44,14 +39,14 @@ func (vErr *ValidationError) Error() string {
 }
 
 // ValidateStruct validates struct fields
-// according to given regex tag.
-func ValidateStruct(src any) (err error) {
+// according to given regex tag
+func ValidateStruct(src interface{}) (err error) {
 	// check if src is a struct
 	srcValue, err := inspectSource(src)
 	if err != nil {
 		return err
 	}
-	// despite it is abs not necessary, in case of panic we will return ErrUnexpected
+	// it is not abs necessary, just in case
 	defer func() {
 		if recover() != nil {
 			err = ErrUnexpected
@@ -67,15 +62,17 @@ func ValidateStruct(src any) (err error) {
 	for i := 0; i < srcValue.NumField(); i++ {
 		fieldValue := srcValue.Field(i)
 		fieldName := srcValue.Type().Field(i).Name
-		tagValue := string(srcValue.Type().Field(i).Tag)
+		tagValue := srcValue.Type().Field(i).Tag
 		// check presence of regex tag (.Tag.Lookup() would not work here)
-		if pattern, ok := getTagValue(tagValue, defaultKey); ok {
+		if pattern, ok := GetTagValue(tagValue, defaultKey); ok {
 			if fieldValue.IsZero() {
 				return fmt.Errorf("%v: %w", ErrValidating,
 					&ValidationError{
 						entity:   structName,
 						property: fieldName,
-						isZero:   true},
+						isZero:   true,
+						pattern:  pattern,
+					},
 				)
 			}
 			// field validation according to pattern
@@ -89,21 +86,22 @@ func ValidateStruct(src any) (err error) {
 			}
 		}
 		// recursive call for nested structs
-		if fieldValue.Type().Kind() == reflect.Struct {
-			if err := ValidateStruct(fieldValue.Interface()); err != nil {
-				return fmt.Errorf("error validating nested struct: %w", err)
-			}
+		if fieldValue.Type().Kind() != reflect.Struct {
+			continue
+		}
+
+		if err := ValidateStruct(fieldValue.Interface()); err != nil {
+			return fmt.Errorf("error validating nested struct: %w", err)
 		}
 	}
-
-	return nil
+	// in case of panic we will return ErrUnexpected
+	return err
 }
 
-// getTagValue address the problem of looking
-// for <key>/<val> pairs of struct tag fields
-// which is not solved by reflect.Tag.Lookup())
-func getTagValue(tag string, key string) (string, bool) {
-	tagStr := fmt.Sprintf("%v", reflect.StructTag(tag))
+// GetTagValue is designed because luck of functionality in reflect.Tag.Lookup()
+// and help retrieve <value> in given <key> from struct fields
+func GetTagValue(tag reflect.StructTag, key string) (string, bool) {
+	tagStr := fmt.Sprintf("%v", tag)
 	tagValue := fmt.Sprintf(`(?s)(?i)\s*(?P<key>%s):\"(?P<value>[^\"]+)\"`, key)
 
 	if match := regexp.MustCompile(tagValue).
@@ -114,19 +112,20 @@ func getTagValue(tag string, key string) (string, bool) {
 	return "", false
 }
 
-func inspectSource(src any) (srcValue *reflect.Value, err error) {
+func inspectSource(src interface{}) (*reflect.Value, error) {
+	var err error
 	defer func() {
 		if recover() != nil {
 			err = ErrUnexpected
 		}
 	}()
 
-	*srcValue = reflect.Indirect(reflect.ValueOf(src))
+	srcValue := reflect.Indirect(reflect.ValueOf(src))
 
 	if srcType := srcValue.Kind(); srcType != reflect.Struct {
 		return nil,
 			fmt.Errorf("input value must be struct, got: %v", srcType)
 	}
 
-	return srcValue, nil
+	return &srcValue, err
 }

@@ -19,8 +19,3 @@ type Logger interface {
 	Println(...any)
 	Printf(string, ...any)
 }
-
-// Validator is designed for validation.
-type Validator interface {
-	Validate(any) error
-}

@@ -8,7 +8,7 @@ import (
 	"github.com/delveper/mylib/app/logic"
 	repo "github.com/delveper/mylib/app/repo/psql"
 	"github.com/delveper/mylib/app/trans/rest"
-	"github.com/delveper/mylib/env"
+	"github.com/delveper/mylib/lib/env"
 	"github.com/delveper/mylib/lib/lgr"
 	"github.com/delveper/mylib/mig"
 )

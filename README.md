@@ -1,5 +1,5 @@
 # mylib
-> Let's go
+
 ## Structure
 ```
 mylib/
@@ -36,3 +36,5 @@ mylib/
 ├── README.md
 └── .env 
 ```
+# Helpful materials
+* [HTTP status codes with kittens](https://httpcats.com/)
