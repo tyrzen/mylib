@@ -18,11 +18,7 @@ type Response struct {
 // HandlerLoggerFunc main func that will be used for all handlers.
 type HandlerLoggerFunc func(http.ResponseWriter, *http.Request, ent.Logger)
 
-type LoggerKey int
-
-const loggerKey LoggerKey = 0
-
-// var loggerKey = &struct{ string }{"logger"}
+var loggerKey = &struct{}{} //nolint:gochecknoglobals    //we need unique item.
 
 // ServeHTTP gives HandlerLoggerFunc feature of http.Handler.
 // ps. don't be dogmatic about injecting logger into context.
@@ -31,8 +27,7 @@ func (hlf HandlerLoggerFunc) ServeHTTP(rw http.ResponseWriter, req *http.Request
 }
 
 func extractLogger(rw http.ResponseWriter, req *http.Request) ent.Logger {
-	ctx := req.Context()
-	logger, ok := ctx.Value(loggerKey).(ent.Logger)
+	logger, ok := req.Context().Value(loggerKey).(ent.Logger)
 	if !ok {
 		respond(rw, req, http.StatusInternalServerError, errors.New("failed extracting logger from request"))
 	}
@@ -43,7 +38,7 @@ func extractLogger(rw http.ResponseWriter, req *http.Request) ent.Logger {
 func decodeBody(req *http.Request, data any) (err error) {
 	defer func() {
 		if e := req.Body.Close(); e != nil {
-			err = fmt.Errorf("error while closing request body: %+v", err)
+			err = fmt.Errorf("error while closing request body: %w", err)
 		}
 	}()
 
@@ -71,12 +66,12 @@ func respond(rw http.ResponseWriter, req *http.Request, code int, data any) {
 	}
 
 	var buf bytes.Buffer
+
 	err := json.NewEncoder(&buf).Encode(data)
 	if err != nil {
 		logger.Errorw("Failed encoding to JSON.",
 			"object", data,
-			"error", err,
-		)
+			"error", err)
 		// respond(rw, req, http.StatusInternalServerError, ErrEncoding)
 		// return
 	}

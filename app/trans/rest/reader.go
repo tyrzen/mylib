@@ -23,10 +23,8 @@ func (r Reader) Route(router chi.Router) {
 	router.Method(http.MethodPost, "/readers", r.Create())
 }
 
-func (r Reader) Create() http.HandlerFunc {
-	return func(rw http.ResponseWriter, req *http.Request) {
-		logger := extractLogger(rw, req)
-
+func (r Reader) Create() HandlerLoggerFunc {
+	return func(rw http.ResponseWriter, req *http.Request, logger ent.Logger) {
 		var reader ent.Reader
 		if err := decodeBody(req, &reader); err != nil {
 			respond(rw, req, http.StatusBadRequest, ErrDecoding)

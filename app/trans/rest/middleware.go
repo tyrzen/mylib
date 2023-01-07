@@ -45,7 +45,6 @@ func WithLogRequest(logger ent.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			logger.Debugw("Request:",
-				"id", req.Context().Value(RequestID),
 				"method", req.Method,
 				"uri", req.RequestURI,
 				"user-agent", req.UserAgent(),
