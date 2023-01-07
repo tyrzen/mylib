@@ -1,69 +1,62 @@
 package rest
 
 import (
-	"context"
-	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/delveper/mylib/app/ent"
-	"github.com/delveper/mylib/app/exc"
 	"github.com/go-chi/chi/v5"
 )
 
-type Reader struct {
-	logic  ReaderLogic
-	logger ent.Logger
-	// resp responder
-}
+type Reader struct{ ReaderLogic }
 
 func NewReader(logic ReaderLogic, logger ent.Logger) Reader {
-	return Reader{
-		logic:  logic,
-		logger: logger,
-	}
+	return Reader{ReaderLogic: logic}
 }
 
 func (r Reader) Route(router chi.Router) {
-	router.Post("/readers", r.Create())
+	router.Use()
+	router.Method(http.MethodPost, "/readers", r.Create())
 }
 
-func (r Reader) Create() http.HandlerFunc {
-	return func(rw http.ResponseWriter, req *http.Request) {
-		resp := newResponse(rw, req, r.logger)
-		defer resp.Send()
+func (r Reader) Create() HandlerLoggerFunc {
+	return func(rw http.ResponseWriter, req *http.Request, logger ent.Logger) {
+		logger.Println("o la la")
+		fmt.Fprintln(rw, "bla bla")
+		/*		var reader ent.Reader
+				if err := r.decodeBody(&reader); err != nil {
+					r.Write(http.StatusBadRequest, Message{Message: MsgBadRequest, Details: err.Error()})
+					r.Errorf("Failed decoding reader data from request.", "request", req, "error", err)
 
-		var reader ent.Reader
-		if err := decodeBody(req, &reader); err != nil {
-			resp.Set(http.StatusBadRequest, Message{Message: MsgBadRequest, Details: err.Error()})
-			r.logger.Errorf("Failed decoding reader data from request.", "request", req, "error", err)
+					return
+				}
 
-			return
-		}
+				if err := reader.Validate(); err != nil {
+					r.Write(http.StatusBadRequest, Message{Message: MsgBadRequest, Details: err.Error()})
+					r.Debugf("Failed validating reader: %v", err)
 
-		if err := reader.Validate(); err != nil {
-			resp.Set(http.StatusBadRequest, Message{Message: MsgBadRequest, Details: err.Error()})
-			r.logger.Debugf("Failed validating reader: %v", err)
+					return
+				}
 
-			return
-		}
+				err := r.SignUp(context.Background(), reader)
+				if err != nil {
+					switch {
+					case errors.Is(err, exc.ErrDuplicateEmail):
+						r.Write(http.StatusConflict, Message{Message: MsgConflict, Details: exc.ErrDuplicateEmail.Error()})
+					case errors.Is(err, exc.ErrDuplicateID):
+						r.Write(http.StatusConflict, Message{Message: MsgConflict, Details: exc.ErrDuplicateID.Error()})
+					default:
+						r.Write(http.StatusInternalServerError, Message{Message: MsgInternalSeverErr})
+					}
 
-		err := r.logic.SignUp(context.Background(), reader)
-		switch {
-		case err == nil:
-			resp.Set(http.StatusCreated, Message{Message: MsgSuccess})
-			r.logger.Debugw("Reader successfully created")
+					r.Errorf("Failed creating reader: %+v", err)
 
-			return
-		case errors.Is(err, exc.ErrDuplicateEmail):
-			resp.Set(http.StatusConflict, Message{Message: MsgConflict, Details: exc.ErrDuplicateEmail.Error()})
-		case errors.Is(err, exc.ErrDuplicateID):
-			resp.Set(http.StatusConflict, Message{Message: MsgConflict, Details: exc.ErrDuplicateID.Error()})
-		default:
-			resp.Set(http.StatusInternalServerError, Message{Message: MsgInternalSeverErr})
-		}
+					return
+				}
 
-		r.logger.Errorf("Failed creating reader: %+v", err)
+				r.Write(http.StatusCreated, Message{Message: MsgSuccess})
+				r.Debugw("Reader successfully created")
 
-		return
+		*/
 	}
 }

@@ -2,16 +2,12 @@
 -- +goose StatementBegin
 CREATE TABLE books
 (
-    id         UUID PRIMARY KEY,
-    author_id  UUID,
+    id         UUID PRIMARY KEY            DEFAULT gen_random_uuid(),
+    author_id  UUID REFERENCES authors (id) ON DELETE SET NULL,
     title      TEXT NOT NULL,
     genre      TEXT,
     rate       INTEGER,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
-
-    CONSTRAINT fk_author
-        FOREIGN KEY (author_id)
-            REFERENCES authors (id)
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
 -- +goose StatementEnd
 

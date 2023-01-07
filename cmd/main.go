@@ -56,7 +56,7 @@ func main() {
 	rtr := rest.NewRouter(readerREST.Route)
 	logger.Infof("Router successfully created.")
 
-	srv, err := rest.NewServer(rtr)
+	srv, err := rest.NewServer(rest.WithLogRequest(logger)(rtr))
 	if err != nil {
 		logger.Errorf("Failed initializing server: %+v", err)
 		return

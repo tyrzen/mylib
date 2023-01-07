@@ -1,10 +1,11 @@
 -- +goose Up
 -- +goose StatementBegin
+
 CREATE TABLE readers
 (
-    id         UUID PRIMARY KEY,
-    first_name TEXT DEFAULT NULL,
-    last_name  TEXT DEFAULT NULL,
+    id         UUID PRIMARY KEY            DEFAULT gen_random_uuid(),
+    first_name TEXT                        DEFAULT NULL,
+    last_name  TEXT                        DEFAULT NULL,
     email      TEXT UNIQUE NOT NULL,
     password   TEXT        NOT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
