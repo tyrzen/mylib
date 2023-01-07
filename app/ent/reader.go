@@ -15,6 +15,6 @@ type Reader struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func (r Reader) Validate() error {
+func (r Reader) OK() error {
 	return revalid.ValidateStruct(r)
 }

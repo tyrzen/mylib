@@ -1,9 +1,5 @@
 package rest
 
-const (
-	MsgSuccess          = "Success"
-	MsgConflict         = "Conflict"
-	MsgInternalSeverErr = "Internal server error"
-	MsgBadRequest       = "Bad request"
-	MsgNotFound         = "Not found"
-)
+type requestKey string
+
+const RequestID requestKey = "X-Request-ID"

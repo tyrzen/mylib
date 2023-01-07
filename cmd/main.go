@@ -51,7 +51,7 @@ func main() {
 
 	readerRepo := repo.NewReader(conn)
 	readerLogic := logic.NewReader(readerRepo)
-	readerREST := rest.NewReader(readerLogic, logger)
+	readerREST := rest.NewReader(readerLogic)
 
 	rtr := rest.NewRouter(readerREST.Route)
 	logger.Infof("Router successfully created.")

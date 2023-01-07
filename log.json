@@ -1,6 +1,9 @@
-{"level":"INFO","time":"2023-01-07T04:40:03.965+0200","message":"Logger set up with level: debug"}
-{"level":"INFO","time":"2023-01-07T04:40:04.006+0200","message":"Connection to repo established."}
-{"level":"INFO","time":"2023-01-07T04:40:04.021+0200","message":"goose: no migrations to run. current version: 5\n"}
-{"level":"INFO","time":"2023-01-07T04:40:04.022+0200","message":"Router successfully created."}
-{"level":"DEBUG","time":"2023-01-07T04:40:06.593+0200","message":"Request:","method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:51852"}
-{"level":"INFO","time":"2023-01-07T04:40:06.593+0200","message":"o la la"}
+{"level":"INFO","time":"2023-01-07T13:36:07.662+0200","message":"Logger set up with level: debug"}
+{"level":"INFO","time":"2023-01-07T13:36:07.768+0200","message":"Connection to repo established."}
+{"level":"INFO","time":"2023-01-07T13:36:07.796+0200","message":"goose: no migrations to run. current version: 5\n"}
+{"level":"INFO","time":"2023-01-07T13:36:07.797+0200","message":"Router successfully created."}
+{"level":"DEBUG","time":"2023-01-07T13:36:12.121+0200","message":"Request:","id":null,"method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:45496"}
+{"level":"DEBUG","time":"2023-01-07T13:36:18.720+0200","message":"Request:","id":null,"method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:45496"}
+{"level":"DEBUG","time":"2023-01-07T13:36:19.231+0200","message":"Request:","id":null,"method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:45496"}
+{"level":"DEBUG","time":"2023-01-07T13:36:19.921+0200","message":"Request:","id":null,"method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:45496"}
+{"level":"DEBUG","time":"2023-01-07T13:36:21.029+0200","message":"Request:","id":null,"method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:45496"}

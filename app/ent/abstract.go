@@ -19,3 +19,8 @@ type Logger interface {
 	Println(...any)
 	Printf(string, ...any)
 }
+
+// OK is validator interface.
+type OK interface {
+	OK() error
+}
