@@ -8,8 +8,8 @@ import (
 	"github.com/delveper/mylib/app/logic"
 	repo "github.com/delveper/mylib/app/repo/psql"
 	"github.com/delveper/mylib/app/trans/rest"
+	"github.com/delveper/mylib/lib/banderlog"
 	"github.com/delveper/mylib/lib/env"
-	"github.com/delveper/mylib/lib/lgr"
 	"github.com/delveper/mylib/mig"
 )
 
@@ -19,7 +19,7 @@ func main() {
 		return
 	}
 
-	var logger ent.Logger = lgr.New()
+	var logger ent.Logger = banderlog.New()
 
 	defer func() {
 		if err := logger.Flush(); err != nil {
@@ -57,8 +57,8 @@ func main() {
 	logger.Infof("Router successfully created.")
 
 	hdl := rest.ChainMiddlewares(rtr,
-		rest.WithLogger(logger),
 		rest.WithRequestID,
+		rest.WithLogger(logger),
 	)
 	logger.Infof("Pre-middleware set up.")
 

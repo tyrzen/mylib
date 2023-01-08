@@ -25,3 +25,9 @@ type Logger interface {
 type OK interface {
 	OK() error
 }
+
+// Hasher addresses hashing problem.
+type Hasher interface {
+	Hash(string) (string, error)
+	Compare(string, string) bool
+}

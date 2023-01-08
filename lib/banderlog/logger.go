@@ -1,4 +1,5 @@
-package lgr
+// Package banderlog is wrapper around zap logger.
+package banderlog
 
 import (
 	"log"
