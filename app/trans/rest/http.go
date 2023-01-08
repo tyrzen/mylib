@@ -18,7 +18,9 @@ type Response struct {
 // HandlerLoggerFunc main func that will be used for all handlers.
 type HandlerLoggerFunc func(http.ResponseWriter, *http.Request, ent.Logger)
 
-var loggerKey = &struct{}{} //nolint:gochecknoglobals    //we need unique item.
+type logKey int
+
+const loggerKey logKey = iota // var loggerKey = &struct{}{}
 
 // ServeHTTP gives HandlerLoggerFunc feature of http.Handler.
 // ps. don't be dogmatic about injecting logger into context.
@@ -49,6 +51,7 @@ func decodeBody(req *http.Request, data any) (err error) {
 	return nil
 }
 
+//nolint:godox    // TODO: Cancellation of database operations in case of respond errors.
 func respond(rw http.ResponseWriter, req *http.Request, code int, data any) {
 	logger := extractLogger(rw, req)
 
@@ -57,8 +60,9 @@ func respond(rw http.ResponseWriter, req *http.Request, code int, data any) {
 			"object", nil,
 			"error", ErrInvalidData,
 		)
-		// respond(rw, req, http.StatusBadRequest, ErrInvalidData)
-		// return
+		respond(rw, req, http.StatusBadRequest, ErrInvalidData)
+
+		return
 	}
 
 	if err, ok := data.(error); ok {
@@ -72,8 +76,9 @@ func respond(rw http.ResponseWriter, req *http.Request, code int, data any) {
 		logger.Errorw("Failed encoding to JSON.",
 			"object", data,
 			"error", err)
-		// respond(rw, req, http.StatusInternalServerError, ErrEncoding)
-		// return
+		respond(rw, req, http.StatusInternalServerError, ErrEncoding)
+
+		return
 	}
 
 	rw.Header().Set("Content-Type", "application/json")
@@ -82,7 +87,7 @@ func respond(rw http.ResponseWriter, req *http.Request, code int, data any) {
 	if _, err := buf.WriteTo(rw); err != nil {
 		logger.Errorw("Failed writing response from buffer.",
 			"object", data,
-			"error", errors.Wrapf(ErrWritingResponse, "%+v", err),
+			"error", fmt.Errorf("%w: %v", ErrWritingResponse, err),
 		)
 	}
 }

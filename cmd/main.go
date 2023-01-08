@@ -56,7 +56,13 @@ func main() {
 	rtr := rest.NewRouter(readerREST.Route)
 	logger.Infof("Router successfully created.")
 
-	srv, err := rest.NewServer(rest.WithLogRequest(logger)(rtr))
+	hdl := rest.ChainMiddlewares(rtr,
+		rest.WithLogger(logger),
+		rest.WithRequestID,
+	)
+	logger.Infof("Pre-middleware set up.")
+
+	srv, err := rest.NewServer(hdl)
 	if err != nil {
 		logger.Errorf("Failed initializing server: %+v", err)
 		return

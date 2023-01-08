@@ -4,6 +4,7 @@ package ent
 type Logger interface {
 	Flush() error
 	Level() string
+	With(...any)
 	Debugf(string, ...any)
 	Debugw(string, ...any)
 	Infof(string, ...any)

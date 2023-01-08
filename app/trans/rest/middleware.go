@@ -30,9 +30,10 @@ func WithContextKey(key any, val any) func(http.Handler) http.Handler {
 func WithRequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		var id string
-		if id = req.Header.Get(string(RequestID)); id == "" {
+		if id = req.Header.Get(RequestID); id == "" {
 			id = uuid.New().String()
 		}
+		req.Header.Set(RequestID, id)
 
 		ctx := context.WithValue(req.Context(), RequestID, id)
 
@@ -40,16 +41,18 @@ func WithRequestID(next http.Handler) http.Handler {
 	})
 }
 
-// WithLogRequest logs every request and sends logger instance to further handler.
-func WithLogRequest(logger ent.Logger) func(http.Handler) http.Handler {
+// WithLogger logs every request and sends logger instance to further handler.
+func WithLogger(logger ent.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			logger.Debugw("Request:",
+				"id", req.Header.Get(RequestID),
 				"method", req.Method,
 				"uri", req.RequestURI,
 				"user-agent", req.UserAgent(),
 				"remote", req.RemoteAddr,
 			)
+
 			WithContextKey(loggerKey, logger)(next).ServeHTTP(rw, req)
 		})
 	}

@@ -3,6 +3,7 @@ package psql
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/delveper/mylib/app/ent"
@@ -27,16 +28,22 @@ func (repo Reader) Create(ctx context.Context, reader ent.Reader) error {
 		reader.Password,  // $4
 	)
 
-	var pgxErr *pgconn.PgError
-	if errors.As(err, &pgxErr) {
-		switch pgxErr.ConstraintName {
-		case "readers_email_key":
-			return errors.Wrapf(exc.ErrDuplicateEmail, "reader with given email is already exists: %v", err)
-		case "readers_pkey":
-			return errors.Wrapf(exc.ErrDuplicateID, "reader with given ID is already exists: %v", err)
-		default:
-			return errors.Wrapf(exc.ErrUnexpected, "error querying: %v", err)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return fmt.Errorf("%w: %v", exc.ErrDeadline, err)
 		}
+
+		var pgxErr *pgconn.PgError
+		if errors.As(err, &pgxErr) {
+			switch pgxErr.ConstraintName {
+			case "readers_email_key":
+				return fmt.Errorf("%w: %v", exc.ErrDuplicateEmail, err)
+			case "readers_pkey":
+				return fmt.Errorf("%w: %v", exc.ErrDuplicateID, err)
+			}
+		}
+
+		return fmt.Errorf("%w: %v", exc.ErrUnexpected, err)
 	}
 
 	return nil

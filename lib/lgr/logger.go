@@ -123,3 +123,7 @@ func (log *Log) Println(keyVal ...any) {
 func (log *Log) Printf(format string, keyVal ...any) {
 	log.core.Infof(format, keyVal...)
 }
+
+func (log *Log) With(keyVal ...any) {
+	log.core.With(keyVal...)
+}

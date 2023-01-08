@@ -19,7 +19,6 @@ func NewReader(logic ReaderLogic) Reader {
 }
 
 func (r Reader) Route(router chi.Router) {
-	router.With(WithRequestID)
 	router.Method(http.MethodPost, "/readers", r.Create())
 }
 
@@ -40,17 +39,21 @@ func (r Reader) Create() HandlerLoggerFunc {
 			return
 		}
 
-		err := r.SignUp(context.Background(), reader)
+		ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+		defer cancel()
+
+		err := r.SignUp(ctx, reader)
 		if err != nil {
 			switch {
 			case errors.Is(err, exc.ErrDuplicateEmail):
 				respond(rw, req, http.StatusConflict, exc.ErrDuplicateEmail)
 			case errors.Is(err, exc.ErrDuplicateID):
 				respond(rw, req, http.StatusConflict, exc.ErrDuplicateID)
+			case errors.Is(err, exc.ErrDeadline):
+				respond(rw, req, http.StatusInternalServerError, exc.ErrDeadline)
 			default:
 				respond(rw, req, http.StatusInternalServerError, exc.ErrUnexpected)
 			}
-
 			logger.Errorf("Failed creating reader: %+v", err)
 
 			return

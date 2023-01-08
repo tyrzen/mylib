@@ -1,5 +1,7 @@
 package rest
 
-type requestKey string
+import "time"
 
-const RequestID requestKey = "X-Request-ID"
+const RequestID = "X-Request-ID"
+
+const queryTimeout = 5 * time.Second
