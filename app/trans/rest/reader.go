@@ -6,13 +6,12 @@ import (
 
 	"github.com/delveper/mylib/app/ent"
 	"github.com/delveper/mylib/app/exc"
+	"github.com/delveper/mylib/lib/hash"
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 )
 
-type Reader struct {
-	ReaderLogic
-}
+type Reader struct{ ReaderLogic }
 
 func NewReader(logic ReaderLogic) Reader {
 	return Reader{ReaderLogic: logic}
@@ -27,7 +26,9 @@ func (r Reader) Create() HandlerLoggerFunc {
 		var reader ent.Reader
 		if err := decodeBody(req, &reader); err != nil {
 			respond(rw, req, http.StatusBadRequest, ErrDecoding)
-			logger.Errorf("Failed decoding reader data from request.", "request", req, "error", err)
+			logger.Errorw("Failed decoding reader data from request.",
+				"request", req,
+				"error", err)
 
 			return
 		}
@@ -39,11 +40,26 @@ func (r Reader) Create() HandlerLoggerFunc {
 			return
 		}
 
+		logger.Debugf("Reader validated.")
+
+		reader.Normalize()
+		logger.Debugf("Reader normalized.")
+
+		pwd, err := hash.Make(reader.Password)
+		if err != nil {
+			respond(rw, req, http.StatusInternalServerError, exc.ErrHashing)
+			logger.Errorf("Failed hashing readers password: %+v", err)
+
+			return
+		}
+
+		reader.Password = pwd
+		logger.Debugw("Readers password hashed.")
+
 		ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 		defer cancel()
 
-		err := r.SignUp(ctx, reader)
-		if err != nil {
+		if err = r.SignUp(ctx, reader); err != nil {
 			switch {
 			case errors.Is(err, exc.ErrDuplicateEmail):
 				respond(rw, req, http.StatusConflict, exc.ErrDuplicateEmail)
@@ -54,6 +70,7 @@ func (r Reader) Create() HandlerLoggerFunc {
 			default:
 				respond(rw, req, http.StatusInternalServerError, exc.ErrUnexpected)
 			}
+
 			logger.Errorf("Failed creating reader: %+v", err)
 
 			return

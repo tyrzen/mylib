@@ -1,9 +1,15 @@
-{"level":"INFO","time":"2023-01-08T10:58:23.331+0200","message":"Logger set up with level: debug"}
-{"level":"INFO","time":"2023-01-08T10:58:23.372+0200","message":"Connection to repo established."}
-{"level":"INFO","time":"2023-01-08T10:58:23.387+0200","message":"goose: no migrations to run. current version: 5\n"}
-{"level":"INFO","time":"2023-01-08T10:58:23.388+0200","message":"Router successfully created."}
-{"level":"INFO","time":"2023-01-08T10:58:23.388+0200","message":"Pre-middleware set up."}
-{"level":"DEBUG","time":"2023-01-08T10:58:25.535+0200","message":"Request:","id":"72537e12-7dae-4496-94a9-93f7a988ea7e","method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:45606"}
-{"level":"ERROR","time":"2023-01-08T10:58:25.553+0200","message":"Failed creating reader: email is already taken: ERROR: duplicate key value violates unique constraint \"readers_email_key\" (SQLSTATE 23505)"}
-{"level":"DEBUG","time":"2023-01-08T10:58:28.131+0200","message":"Request:","id":"32329573-7e3d-469d-8a79-1e54fe31c067","method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:45606"}
-{"level":"ERROR","time":"2023-01-08T10:58:28.147+0200","message":"Failed creating reader: email is already taken: ERROR: duplicate key value violates unique constraint \"readers_email_key\" (SQLSTATE 23505)"}
+{"level":"INFO","time":"2023-01-10T06:58:06.258+0200","message":"Logger set up with level: debug"}
+{"level":"INFO","time":"2023-01-10T06:58:06.305+0200","message":"Connection to repo established."}
+{"level":"INFO","time":"2023-01-10T06:58:06.323+0200","message":"goose: no migrations to run. current version: 5\n"}
+{"level":"INFO","time":"2023-01-10T06:58:06.323+0200","message":"Router successfully created."}
+{"level":"INFO","time":"2023-01-10T06:58:06.324+0200","message":"Pre-middleware set up."}
+{"level":"DEBUG","time":"2023-01-10T06:58:11.178+0200","message":"Request:","id":"d2de7210-5c68-4770-9dcf-ebb11ae3bce7","method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:48336"}
+{"level":"DEBUG","time":"2023-01-10T06:58:11.194+0200","message":"Reader validated."}
+{"level":"DEBUG","time":"2023-01-10T06:58:11.195+0200","message":"Reader normalized."}
+{"level":"DEBUG","time":"2023-01-10T06:58:11.300+0200","message":"Readers password hashed."}
+{"level":"ERROR","time":"2023-01-10T06:58:11.304+0200","message":"Failed creating reader: email is already taken: ERROR: duplicate key value violates unique constraint \"readers_email_key\" (SQLSTATE 23505)"}
+{"level":"DEBUG","time":"2023-01-10T06:58:17.847+0200","message":"Request:","id":"c03d546c-e55b-4b88-b41e-c04ee327765b","method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:48336"}
+{"level":"DEBUG","time":"2023-01-10T06:58:17.861+0200","message":"Reader validated."}
+{"level":"DEBUG","time":"2023-01-10T06:58:17.862+0200","message":"Reader normalized."}
+{"level":"DEBUG","time":"2023-01-10T06:58:17.963+0200","message":"Readers password hashed."}
+{"level":"DEBUG","time":"2023-01-10T06:58:17.970+0200","message":"Reader successfully created"}

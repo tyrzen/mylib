@@ -6,12 +6,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Hasher struct{}
-
-func NewHash() Hasher { return Hasher{} }
-
-func (h Hasher) Hash(password string) (string, error) {
-	bts, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MaxCost)
+func Make(password string) (string, error) {
+	bts, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", fmt.Errorf("error hashing: %w", err)
 	}
@@ -19,8 +15,8 @@ func (h Hasher) Hash(password string) (string, error) {
 	return string(bts), nil
 }
 
-func (h Hasher) Compare(password string, hash string) bool {
-	if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(hash)); err != nil {
+func Compare(password string, hash string) bool {
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
 		return false
 	}
 

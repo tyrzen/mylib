@@ -1,6 +1,7 @@
 package ent
 
 import (
+	"strings"
 	"time"
 
 	"github.com/delveper/mylib/lib/revalid"
@@ -15,6 +16,12 @@ type Reader struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func (r Reader) OK() error {
-	return revalid.ValidateStruct(r)
+func (r *Reader) OK() error {
+	return revalid.ValidateStruct(r) //nolint:wrapcheck
+}
+
+func (r *Reader) Normalize() {
+	r.FirstName = strings.TrimSpace(r.FirstName)
+	r.LastName = strings.TrimSpace(r.LastName)
+	r.Email = strings.TrimSpace(strings.ToLower(r.Email))
 }

@@ -51,7 +51,6 @@ func decodeBody(req *http.Request, data any) (err error) {
 	return nil
 }
 
-//nolint:godox    // TODO: Cancellation of database operations in case of respond errors.
 func respond(rw http.ResponseWriter, req *http.Request, code int, data any) {
 	logger := extractLogger(rw, req)
 
@@ -73,7 +72,7 @@ func respond(rw http.ResponseWriter, req *http.Request, code int, data any) {
 
 	err := json.NewEncoder(&buf).Encode(data)
 	if err != nil {
-		logger.Errorw("Failed encoding to JSON.",
+		logger.Errorw("Failed encoding data to JSON.",
 			"object", data,
 			"error", err)
 		respond(rw, req, http.StatusInternalServerError, ErrEncoding)
