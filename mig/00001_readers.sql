@@ -4,10 +4,10 @@
 CREATE TABLE readers
 (
     id         UUID PRIMARY KEY            DEFAULT gen_random_uuid(),
-    first_name TEXT                        DEFAULT NULL,
-    last_name  TEXT                        DEFAULT NULL,
-    email      TEXT UNIQUE NOT NULL,
-    password   TEXT        NOT NULL,
+    first_name VARCHAR(255)                        DEFAULT NULL,
+    last_name  VARCHAR(255)                        DEFAULT NULL,
+    email      VARCHAR(255) UNIQUE NOT NULL,
+    password   CHAR(60)       NOT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
 

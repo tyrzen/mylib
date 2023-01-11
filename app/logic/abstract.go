@@ -8,6 +8,7 @@ import (
 
 type ReaderRepository interface {
 	Create(context.Context, ent.Reader) error
+	Authenticate(context.Context, ent.Reader) error
 }
 
 type BookRepository interface {

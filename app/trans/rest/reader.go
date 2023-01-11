@@ -13,14 +13,24 @@ import (
 
 type Reader struct{ ReaderLogic }
 
+type ReaderSinger struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func NewReader(logic ReaderLogic) Reader {
 	return Reader{ReaderLogic: logic}
 }
 
 func (r Reader) Route(router chi.Router) {
-	router.Method(http.MethodPost, "/readers", r.Create())
+	router.Route("/readers", func(router chi.Router) {
+		router.Method(http.MethodPost, "/", r.Create())
+		// router.Method(http.MethodPost, "/readers/", r.Authenticate())
+	})
+
 }
 
+// Create creates new ent.Reader.
 func (r Reader) Create() HandlerLoggerFunc {
 	return func(rw http.ResponseWriter, req *http.Request, logger ent.Logger) {
 		var reader ent.Reader
@@ -78,5 +88,12 @@ func (r Reader) Create() HandlerLoggerFunc {
 
 		respond(rw, req, http.StatusCreated, Response{Message: "Success"})
 		logger.Debugw("Reader successfully created")
+	}
+}
+
+// Authenticate logins existing ent.Reader.
+func (r Reader) Authenticate() HandlerLoggerFunc {
+	return func(rw http.ResponseWriter, req *http.Request, logger ent.Logger) {
+
 	}
 }

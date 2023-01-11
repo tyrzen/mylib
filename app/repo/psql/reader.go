@@ -18,10 +18,10 @@ func NewReader(db *sql.DB) *Reader {
 	return &Reader{db}
 }
 
-func (repo Reader) Create(ctx context.Context, reader ent.Reader) error {
+func (r Reader) Create(ctx context.Context, reader ent.Reader) error {
 	reader.CreatedAt = time.Now()
 
-	_, err := repo.DB.ExecContext(ctx, queryCreateReader,
+	_, err := r.DB.ExecContext(ctx, queryCreateReader,
 		reader.FirstName, // $1
 		reader.LastName,  // $2
 		reader.Email,     // $3
@@ -45,6 +45,30 @@ func (repo Reader) Create(ctx context.Context, reader ent.Reader) error {
 
 		return fmt.Errorf("%w: %v", exc.ErrUnexpected, err)
 	}
+
+	return nil
+}
+
+func (r Reader) Authenticate(ctx context.Context, reader ent.Reader) error {
+	var id, password string
+
+	row := r.DB.QueryRowContext(ctx, queryAuthenticateReader, reader.Email)
+
+	err := row.Scan(&id, &password)
+
+	if err != nil {
+		// switch {
+		// case errors.Is(err, context.DeadlineExceeded):
+		// 	return fmt.Errorf("%w: %v", exc.ErrDeadline, err)
+		// case errors.Is(err, sql.ErrNoRows):
+		// 	return fmt.Errorf("%w: %v", exc.ErrNoRecord, err)
+		// default:
+		// 	return fmt.Errorf("%w: %v", exc.ErrUnexpected, err)
+		// }
+		return fmt.Errorf("authentication error: %w", err)
+	}
+
+	reader = ent.Reader{ID: id, Password: password}
 
 	return nil
 }

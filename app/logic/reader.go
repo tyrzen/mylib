@@ -20,3 +20,8 @@ func (r Reader) SignUp(ctx context.Context, reader ent.Reader) error {
 	}
 	return nil
 }
+
+func (r Reader) SingIn(ctx context.Context, reader ent.Reader) (ent.Reader, error) {
+
+	return ent.Reader{}, nil
+}
