@@ -15,10 +15,10 @@ func Make(password string) (string, error) {
 	return string(bts), nil
 }
 
-func Compare(password string, hash string) bool {
+func Compare(password string, hash string) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
-		return false
+		return fmt.Errorf("error comparing hash: %w", err)
 	}
 
-	return true
+	return nil
 }

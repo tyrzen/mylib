@@ -1,9 +1,12 @@
 package ent
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
+	"github.com/delveper/mylib/app/exc"
+	"github.com/delveper/mylib/lib/hash"
 	"github.com/delveper/mylib/lib/revalid"
 )
 
@@ -17,11 +20,31 @@ type Reader struct {
 }
 
 func (r *Reader) OK() error {
-	return revalid.ValidateStruct(r) //nolint:wrapcheck
+	if err := revalid.ValidateStruct(r); err != nil {
+		return fmt.Errorf("%w: %v", exc.ErrValidation, err)
+	}
+
+	return nil
 }
 
 func (r *Reader) Normalize() {
 	r.FirstName = strings.TrimSpace(r.FirstName)
 	r.LastName = strings.TrimSpace(r.LastName)
 	r.Email = strings.TrimSpace(strings.ToLower(r.Email))
+}
+
+func (r *Reader) HashPassword() (err error) {
+	if r.Password, err = hash.Make(r.Password); err != nil {
+		return fmt.Errorf("%w: %v", exc.ErrHashing, err)
+	}
+
+	return nil
+}
+
+func (r *Reader) CheckPassword(password string) error {
+	if err := hash.Compare(password, r.Password); err != nil {
+		return fmt.Errorf("%w: %v", exc.ErrComparingHash, err)
+	}
+
+	return nil
 }

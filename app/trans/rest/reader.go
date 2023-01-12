@@ -6,7 +6,6 @@ import (
 
 	"github.com/delveper/mylib/app/ent"
 	"github.com/delveper/mylib/app/exc"
-	"github.com/delveper/mylib/lib/hash"
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 )
@@ -55,21 +54,19 @@ func (r Reader) Create() HandlerLoggerFunc {
 		reader.Normalize()
 		logger.Debugf("Reader normalized.")
 
-		pwd, err := hash.Make(reader.Password)
-		if err != nil {
+		if err := reader.HashPassword(); err != nil {
 			respond(rw, req, http.StatusInternalServerError, exc.ErrHashing)
 			logger.Errorf("Failed hashing readers password: %+v", err)
 
 			return
 		}
 
-		reader.Password = pwd
 		logger.Debugw("Readers password hashed.")
 
 		ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 		defer cancel()
 
-		if err = r.SignUp(ctx, reader); err != nil {
+		if err := r.SignUp(ctx, reader); err != nil {
 			switch {
 			case errors.Is(err, exc.ErrDuplicateEmail):
 				respond(rw, req, http.StatusConflict, exc.ErrDuplicateEmail)
