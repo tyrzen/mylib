@@ -57,3 +57,11 @@ func WithLogger(logger ent.Logger) func(http.Handler) http.Handler {
 		})
 	}
 }
+
+func WithJWT(next func(HandlerLoggerFunc)) HandlerLoggerFunc {
+	return HandlerLoggerFunc(
+		func(rw http.ResponseWriter, req *http.Request, logger ent.Logger) {
+
+		},
+	)
+}

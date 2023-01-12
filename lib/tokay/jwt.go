@@ -1,4 +1,4 @@
-package jwt
+package tokay
 
 import (
 	"crypto"
@@ -6,10 +6,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/delveper/mylib/app/exc"
 	"github.com/golang-jwt/jwt"
+	"github.com/pkg/errors"
 )
 
-func New(user string) (string, error) {
+func New(aud string) (string, error) {
 	exp, err := time.ParseDuration(os.Getenv("JWT_EXP"))
 	if err != nil {
 		return "", fmt.Errorf("error parsing token expirity duration: %w", err)
@@ -17,13 +19,13 @@ func New(user string) (string, error) {
 
 	now := time.Now()
 
-	issuer := os.Getenv("APP_NAME")
+	iss := os.Getenv("APP_NAME")
 
 	claims := jwt.StandardClaims{
-		Audience:  user,
+		Audience:  aud,
 		ExpiresAt: now.Add(exp).Unix(),
 		IssuedAt:  now.Unix(),
-		Issuer:    issuer,
+		Issuer:    iss,
 	}
 
 	alg, err := parseAlg(os.Getenv("JWT_ALG"))
@@ -35,7 +37,7 @@ func New(user string) (string, error) {
 
 	key := os.Getenv("JWT_KEY")
 
-	str, err := token.SignedString(key)
+	str, err := token.SignedString([]byte(key))
 	if err != nil {
 		return "", fmt.Errorf("error creating token string: %v", err)
 	}
@@ -54,4 +56,27 @@ func parseAlg(alg string) (*jwt.SigningMethodHMAC, error) {
 	default:
 		return nil, fmt.Errorf("unsupported alg for HMAC: %s", alg)
 	}
+}
+
+func Parse(str string) error {
+	token, err := jwt.Parse(str, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("JWT_KEY")), nil
+	})
+
+	if err != nil || !token.Valid {
+		var errV *jwt.ValidationError
+		if errors.As(errV, err) {
+			switch errV.Errors {
+			case jwt.ValidationErrorExpired:
+				return exc.ErrTokenExpired
+			case jwt.ValidationErrorSignatureInvalid:
+				return fmt.Errorf("%w: %v", exc.ErrTokenInvalidSigningMethod, err)
+			default:
+			}
+		}
+
+		return fmt.Errorf("%w: %v", exc.ErrTokenInvalid, err)
+	}
+
+	return nil
 }
