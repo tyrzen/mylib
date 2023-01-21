@@ -16,6 +16,7 @@ type Reader struct {
 	LastName  string    `json:"last_name" revalid:"^[\p{L}&\s-\\'’.]{2,256}$"`                 //nolint:govet
 	Email     string    `json:"email" revalid:"(?i)(^[a-z0-9_.+-]+@[a-z0-9-]+\.[a-z0-9-.]+$)"` //nolint:govet
 	Password  string    `json:"password" revalid:"^[[:graph:]]{8,256}$"`
+	IsAdmin   bool      `json:"is_admin"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -42,7 +43,7 @@ func (r *Reader) HashPassword() (err error) {
 }
 
 func (r *Reader) CheckPassword(password string) error {
-	if err := hash.Compare(password, r.Password); err != nil {
+	if err := hash.Check(password, r.Password); err != nil {
 		return fmt.Errorf("%w: %v", exc.ErrComparingHash, err)
 	}
 

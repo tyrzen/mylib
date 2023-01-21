@@ -1,12 +1,13 @@
 version: "3.9"
 
 services:
+  # MAIN REPO
   repo:
     image: postgres:15.1-alpine3.17
     restart: always
-    container_name: mylib_repo
+    container_name: ${APP_NAME}_repo
     ports:
-      - ${DB_HOST_PORT}:${DB_PORT}
+      - ${DB_EXPOSE_PORT}:${DB_PORT}
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
@@ -15,19 +16,38 @@ services:
       - repo_data:/var/lib/postgresql/data
     networks:
       - mylib
+  # SESSION TOKENS REPO
+  session:
+    image: redis:alpine3.17
+    container_name: ${APP_NAME}_session
+    restart: unless-stopped
+    command: redis-server --requirepass ${SESSION_PASSWORD}
+    ports:
+      - ${SESSION_EXPOSE_PORT}:${SESSION_PORT}
+    environment:
+      - REDIS_MASTER_HOST=${SESSION_HOST}
+      - REDIS_PASSWORD=${SESSION_PASSWORD}
+      - REDIS_PORT_NUMBER=${SESSION_PORT}
+    volumes:
+      - session_data:/data
+    networks:
+      - mylib
+  # API
   api:
     build: .
-    container_name: mylib_rest_api
+    container_name: ${APP_NAME}_rest_api
     privileged: true
     ports:
       - ${SRV_PORT}:${SRV_PORT}
     depends_on:
       - repo
+      - session
     networks:
       - mylib
 
 volumes:
   repo_data:
+  session_data:
 
 networks:
   mylib:

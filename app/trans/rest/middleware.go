@@ -3,8 +3,11 @@ package rest
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/delveper/mylib/app/ent"
+	"github.com/delveper/mylib/app/exc"
+	"github.com/delveper/mylib/lib/tokay"
 	"github.com/google/uuid"
 )
 
@@ -58,10 +61,30 @@ func WithLogger(logger ent.Logger) func(http.Handler) http.Handler {
 	}
 }
 
-func WithJWT(next func(HandlerLoggerFunc)) HandlerLoggerFunc {
-	return HandlerLoggerFunc(
-		func(rw http.ResponseWriter, req *http.Request, logger ent.Logger) {
+// WithAuth will check if token is valid.
+func WithAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		logger := extractLogger(rw, req)
 
-		},
-	)
+		header := req.Header.Get("Authorization")
+
+		const bearer = "bearer"
+		if len(header) > len(bearer) && strings.ToLower(header[:len(bearer)]) == bearer {
+			respond(rw, req, http.StatusBadRequest, exc.ErrInvalidHeader)
+			logger.Debugf("Failed retrieve valid bearer token from header: %+v", exc.ErrInvalidHeader)
+
+			return
+		}
+
+		token := header[len(bearer):]
+
+		if err := tokay.Check(token); err != nil {
+			respond(rw, req, http.StatusUnauthorized, exc.ErrNotAuthorized)
+			logger.Debugf("Authorization failed: %+v", err)
+
+			return
+		}
+
+		next.ServeHTTP(rw, req)
+	})
 }

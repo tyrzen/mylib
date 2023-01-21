@@ -7,8 +7,14 @@ include $(ENV)
 run:
 	go run ./cmd/main.go
 
+# Certificate
+certificate:
+	openssl genrsa -out key.pem
+	openssl req -new -key key.pem -out cert.pem
+	openssl req -x509 -days 365 -key key.pem -in cert.pem -out certificate.pem
+
 # Migrations
-DB_DSN := "host=$(DB_HOST) port=$(DB_HOST_PORT) user=$(DB_USER) password=$(DB_PASSWORD) dbname=$(DB_NAME) sslmode=$(DB_SSL_MODE)"
+DB_DSN := "host=$(DB_HOST) port=$(DB_EXPOSE_PORT) user=$(DB_USER) password=$(DB_PASSWORD) dbname=$(DB_NAME) sslmode=$(DB_SSL_MODE)"
 MIG_DIR := ./mig
 
 ifeq (migrate-create,$(firstword $(MAKECMDGOALS)))
@@ -33,7 +39,7 @@ build:
 rebuild: clean
 	docker-compose --verbose --file $(DOCKER_COMPOSE_FILE) --env-file $(ENV)  --log-level $(LOG_LEVEL) build --no-cache
 up:
-	sudo docker-compose --verbose --file $(DOCKER_COMPOSE_FILE) --env-file $(ENV) --log-level $(LOG_LEVEL) up
+	sudo docker-compose --verbose --file $(DOCKER_COMPOSE_FILE) --env-file $(ENV) --log-level $(LOG_LEVEL) up --detach
 start:
 	sudo docker-compose --verbose --file $(DOCKER_COMPOSE_FILE) --env-file $(ENV) --log-level $(LOG_LEVEL) start
 down:

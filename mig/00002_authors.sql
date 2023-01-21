@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE authors
 (
-    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id         UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
     first_name VARCHAR(255) NOT NULL,
     last_name  VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NULL
@@ -11,5 +11,5 @@ CREATE TABLE authors
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE authors
+DROP TABLE authors CASCADE;
 -- +goose StatementEnd

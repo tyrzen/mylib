@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Response struct {
+type response struct {
 	Message string `json:"message"`
 	Details string `json:"details,omitempty"`
 }
@@ -22,7 +22,7 @@ type logKey int
 
 const loggerKey logKey = iota // var loggerKey = &struct{}{}
 
-// ServeHTTP gives HandlerLoggerFunc feature of http.Handler.
+// ServeHTTP gives handlerLoggerFunc feature of http.Handler.
 // ps. don't be dogmatic about injecting logger into context.
 func (hlf HandlerLoggerFunc) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	hlf(rw, req, extractLogger(rw, req))
@@ -65,7 +65,7 @@ func respond(rw http.ResponseWriter, req *http.Request, code int, data any) {
 	}
 
 	if err, ok := data.(error); ok {
-		data = Response{Message: http.StatusText(code), Details: err.Error()}
+		data = response{Message: http.StatusText(code), Details: err.Error()}
 	}
 
 	var buf bytes.Buffer

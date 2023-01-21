@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	if err := env.Load(); err != nil {
+	if err := env.LoadVars(); err != nil {
 		log.Printf("Failed to load environment variables: %+v", err)
 		return
 	}
@@ -54,12 +54,14 @@ func main() {
 	readerREST := rest.NewReader(readerLogic)
 
 	rtr := rest.NewRouter(readerREST.Route)
+
 	logger.Infof("Router successfully created.")
 
 	hdl := rest.ChainMiddlewares(rtr,
 		rest.WithRequestID,
 		rest.WithLogger(logger),
 	)
+
 	logger.Infof("Pre-middleware set up.")
 
 	srv, err := rest.NewServer(hdl)
@@ -68,8 +70,9 @@ func main() {
 		return
 	}
 
-	if err := srv.ListenAndServe(); err != nil {
+	if err := srv.Run(); err != nil {
 		logger.Errorf("Failed running server: %+v", err)
 	}
+
 	logger.Infof("Server started on the port: %s", os.Getenv("SRV_PORT"))
 }

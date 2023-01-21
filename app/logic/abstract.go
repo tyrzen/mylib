@@ -7,8 +7,13 @@ import (
 )
 
 type ReaderRepository interface {
-	Create(context.Context, ent.Reader) error
-	Authenticate(context.Context, ent.Reader) error
+	Add(context.Context, ent.Reader) error
+	GetByEmailOrID(context.Context, ent.Reader) (ent.Reader, error)
+}
+
+type TokenRepository interface {
+	Add(context.Context, ent.Token) error
+	GetByID(context.Context, string) (ent.Token, error)
 }
 
 type BookRepository interface {

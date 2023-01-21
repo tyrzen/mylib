@@ -1,6 +1,9 @@
 # Environment variables
 .env
 
+# Temp files
+tmp
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -22,3 +25,6 @@
 # Log files
 log.*
 *.log
+
+# Certificates
+*.pem

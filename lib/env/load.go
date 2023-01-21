@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func Load() (err error) {
+func LoadVars() (err error) {
 	env, err := os.Open(".env")
 	if err != nil {
 		return fmt.Errorf("error during opening environment file: %w", err)

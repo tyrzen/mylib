@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE books
 (
-    id         UUID PRIMARY KEY            DEFAULT gen_random_uuid(),
+    id         UUID PRIMARY KEY            DEFAULT GEN_RANDOM_UUID(),
     author_id  UUID REFERENCES authors (id) ON DELETE SET NULL,
     title      TEXT NOT NULL,
     genre      TEXT,
@@ -13,5 +13,5 @@ CREATE TABLE books
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE books;
+DROP TABLE books CASCADE;
 -- +goose StatementEnd

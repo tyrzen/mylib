@@ -8,7 +8,8 @@ import (
 
 type ReaderLogic interface {
 	SignUp(context.Context, ent.Reader) error
-	SignIn(context.Context, ent.Reader) error
+	SignIn(context.Context, ent.Credentials) (ent.Reader, error)
+	SignOut(context.Context, ent.Reader) error
 }
 
 type BookLogic interface {

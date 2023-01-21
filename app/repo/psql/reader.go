@@ -18,10 +18,11 @@ func NewReader(db *sql.DB) *Reader {
 	return &Reader{db}
 }
 
-func (r Reader) Create(ctx context.Context, reader ent.Reader) error {
+// Add adds ent.Reader entity.
+func (r Reader) Add(ctx context.Context, reader ent.Reader) error {
 	reader.CreatedAt = time.Now()
 
-	_, err := r.DB.ExecContext(ctx, queryCreateReader,
+	_, err := r.ExecContext(ctx, queryCreateReader,
 		reader.FirstName, // $1
 		reader.LastName,  // $2
 		reader.Email,     // $3
@@ -49,26 +50,32 @@ func (r Reader) Create(ctx context.Context, reader ent.Reader) error {
 	return nil
 }
 
-func (r Reader) Authenticate(ctx context.Context, reader ent.Reader) error {
-	var id, password string
+// GetByEmailOrID will retrieve ent.Reader by given UserID, Email or both parameters.
+func (r Reader) GetByEmailOrID(ctx context.Context, reader ent.Reader) (ent.Reader, error) {
+	row := r.QueryRowContext(ctx, queryFindReader,
+		reader.ID,    // $1
+		reader.Email, // $2
+	)
 
-	row := r.DB.QueryRowContext(ctx, queryAuthenticateReader, reader.Email)
-
-	err := row.Scan(&id, &password)
+	err := row.Scan(
+		&reader.ID,
+		&reader.FirstName,
+		&reader.LastName,
+		&reader.Email,
+		&reader.Password,
+		&reader.CreatedAt,
+	)
 
 	if err != nil {
-		// switch {
-		// case errors.Is(err, context.DeadlineExceeded):
-		// 	return fmt.Errorf("%w: %v", exc.ErrDeadline, err)
-		// case errors.Is(err, sql.ErrNoRows):
-		// 	return fmt.Errorf("%w: %v", exc.ErrNoRecord, err)
-		// default:
-		// 	return fmt.Errorf("%w: %v", exc.ErrUnexpected, err)
-		// }
-		return fmt.Errorf("authentication error: %w", err)
+		switch {
+		case errors.Is(err, context.DeadlineExceeded):
+			return ent.Reader{}, fmt.Errorf("%w: %v", exc.ErrDeadline, err)
+		case errors.Is(err, sql.ErrNoRows):
+			return ent.Reader{}, fmt.Errorf("%w: %v", exc.ErrNoRecord, err)
+		default:
+			return ent.Reader{}, fmt.Errorf("%w: %v", exc.ErrUnexpected, err)
+		}
 	}
 
-	reader = ent.Reader{ID: id, Password: password}
-
-	return nil
+	return reader, nil
 }

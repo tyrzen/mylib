@@ -1,3 +1,6 @@
+## Security
+[Letsencrypt](https://letsencrypt.org/) gives production ready certificates for free.
+
 ## Auth endpoints 
 
 >`POST /user {userObject}` -> To create user resource, i.e, Signup.
