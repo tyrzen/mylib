@@ -11,7 +11,7 @@ type ReaderRepository interface {
 	GetByEmailOrID(context.Context, ent.Reader) (ent.Reader, error)
 }
 
-type TokenRepository interface {
+type SessionRepository interface {
 	Add(context.Context, ent.Token) error
 	GetByID(context.Context, string) (ent.Token, error)
 }

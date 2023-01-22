@@ -10,34 +10,31 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Token struct{ *redis.Client }
+type Session struct{ *redis.Client }
 
-func NewToken(client *redis.Client) Token {
-	return Token{client}
+func NewSession(client *redis.Client) Session {
+	return Session{client}
 }
 
-func (t Token) Add(ctx context.Context, token ent.Token) error {
+func (t Session) Add(ctx context.Context, token ent.Token) error {
 	if err := t.Set(ctx, token.ID, token.UID, token.Expiration).Err(); err != nil {
-		return fmt.Errorf("error creating session record: %w", err)
+		return fmt.Errorf("recording session: %w", err)
 	}
 
 	return nil
 }
 
-func (t Token) GetByID(ctx context.Context, id string) (ent.Token, error) {
+func (t Session) GetByID(ctx context.Context, id string) (ent.Token, error) {
 	uid, err := t.Get(ctx, id).Result()
 	if errors.Is(err, redis.Nil) {
 		return ent.Token{}, fmt.Errorf("nil record: %w", exc.ErrTokenNotFound)
 	}
 
 	if err != nil {
-		return ent.Token{}, fmt.Errorf("failed fetching record: %w", exc.ErrUnexpected)
+		return ent.Token{}, fmt.Errorf("error fetching record: %w", exc.ErrUnexpected)
 	}
 
-	token := ent.Token{
-		ID:  id,
-		UID: uid,
-	}
+	token := ent.NewToken(id, uid, 0)
 
 	return token, nil
 }

@@ -3,8 +3,6 @@ package rest
 import (
 	"context"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/delveper/mylib/app/ent"
 	"github.com/delveper/mylib/app/exc"
@@ -13,10 +11,20 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Reader struct{ ReaderLogic }
+type Reader struct {
+	ReaderLogic
+	SessionLogic
+}
 
-func NewReader(logic ReaderLogic) Reader {
-	return Reader{ReaderLogic: logic}
+type ReaderKey int
+
+const readerKey ReaderKey = iota
+
+func NewReader(logic ReaderLogic, session SessionLogic) Reader {
+	return Reader{
+		ReaderLogic:  logic,
+		SessionLogic: session,
+	}
 }
 
 func (r Reader) Route(router chi.Router) {
@@ -29,6 +37,20 @@ func (r Reader) Route(router chi.Router) {
 		router.Method(http.MethodPost, "/logout", r.Logout())
 		router.Method(http.MethodPost, "/token", nil)
 	})
+}
+
+func withReader(ctx context.Context, reader *ent.Reader) context.Context {
+	return context.WithValue(ctx, readerKey, reader)
+}
+
+func extractReader(ctx context.Context) *ent.Reader {
+	val := ctx.Value(readerKey)
+	reader, ok := val.(*ent.Reader)
+	if !ok {
+		return nil
+	}
+
+	return reader
 }
 
 // Create creates new ent.Reader.
@@ -89,7 +111,7 @@ func (r Reader) Create() HandlerLoggerFunc {
 	}
 }
 
-// Login logins existing ent.Reader.
+// Login handles authorization process of created ent.Reader.
 func (r Reader) Login() HandlerLoggerFunc {
 	return func(rw http.ResponseWriter, req *http.Request, logger ent.Logger) {
 		var creds ent.Credentials
@@ -128,7 +150,7 @@ func (r Reader) Login() HandlerLoggerFunc {
 			return
 		}
 
-		tokenPair, err := tokay.NewTokenPair("", true)
+		tokenPair, err := tokay.NewTokenPair(reader.ID, reader.IsAdmin)
 		if err != nil {
 			respond(rw, req, http.StatusInternalServerError, exc.ErrUnexpected)
 			logger.Errorw("Failed creating token.", "error", err)
@@ -136,27 +158,18 @@ func (r Reader) Login() HandlerLoggerFunc {
 			return
 		}
 
-		http.SetCookie(rw, &http.Cookie{
-			Name:     "refresh_token",
-			Value:    tokenPair.Refresh.Value,
-			Domain:   os.Getenv("SRV_HOST"),
-			Path:     "/auth",
-			Expires:  time.Now().Add(tokenPair.Refresh.Expiration),
-			SameSite: http.SameSiteLaxMode,
-			HttpOnly: true,
-			Secure:   true,
-		})
+		token := ent.NewToken(tokenPair.Refresh.ID, reader.ID, tokenPair.Refresh.Expiration)
 
-		resp := struct {
-			Access  string `json:"access_token"`
-			Refresh string `json:"refresh_token"`
-		}{
-			Access:  tokenPair.Access.Value,
-			Refresh: tokenPair.Refresh.Value,
+		if err := r.SessionLogic.Create(ctx, token); err != nil {
+			respond(rw, req, http.StatusInternalServerError, exc.ErrUnexpected)
+			logger.Errorw("Failed creating session.", "error", err)
+
+			return
 		}
 
-		respond(rw, req, http.StatusOK, resp)
+		setCookie(rw, "refresh_token", tokenPair.Refresh.Value, tokenPair.Refresh.Expiration)
 
+		respond(rw, req, http.StatusOK, tokenPair)
 		logger.Debugf("Reader authorized successfully.")
 	}
 }

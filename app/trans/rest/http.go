@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/delveper/mylib/app/ent"
 	"github.com/pkg/errors"
@@ -18,9 +20,9 @@ type response struct {
 // HandlerLoggerFunc main func that will be used for all handlers.
 type HandlerLoggerFunc func(http.ResponseWriter, *http.Request, ent.Logger)
 
-type logKey int
+type LoggerKey int
 
-const loggerKey logKey = iota // var loggerKey = &struct{}{}
+const loggerKey LoggerKey = iota // var loggerKey = &struct{}{}
 
 // ServeHTTP gives handlerLoggerFunc feature of http.Handler.
 // ps. don't be dogmatic about injecting logger into context.
@@ -49,6 +51,18 @@ func decodeBody(req *http.Request, data any) (err error) {
 	}
 
 	return nil
+}
+func setCookie(rw http.ResponseWriter, name, val string, exp time.Duration) {
+	http.SetCookie(rw, &http.Cookie{
+		Name:     name,
+		Value:    val,
+		Domain:   os.Getenv("SRV_HOST"),
+		Path:     "/auth",
+		Expires:  time.Now().Add(exp),
+		SameSite: http.SameSiteLaxMode,
+		HttpOnly: true,
+		Secure:   true,
+	})
 }
 
 func respond(rw http.ResponseWriter, req *http.Request, code int, data any) {

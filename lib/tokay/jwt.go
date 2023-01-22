@@ -13,14 +13,14 @@ import (
 )
 
 type TokenPair struct {
-	Access  Token
-	Refresh Token
+	Access  Token `json:"access_token"`
+	Refresh Token `json:"refresh_token"`
 }
 
 type Token struct {
-	ID         string
-	Value      string
-	Expiration time.Duration
+	ID         string        `json:"-"`
+	Value      string        `json:"value"`
+	Expiration time.Duration `json:"-"`
 }
 
 type Claims struct {

@@ -10,19 +10,15 @@ import (
 )
 
 type Reader struct {
-	repo ReaderRepository
-	sess TokenRepository
+	ReaderRepository
 }
 
-func NewReader(repo ReaderRepository, sess TokenRepository) Reader {
-	return Reader{
-		repo: repo,
-		sess: sess,
-	}
+func NewReader(repo ReaderRepository) Reader {
+	return Reader{repo}
 }
 
 func (r Reader) SignUp(ctx context.Context, reader ent.Reader) error {
-	if err := r.repo.Add(ctx, reader); err != nil {
+	if err := r.Add(ctx, reader); err != nil {
 		return err
 	}
 
@@ -30,7 +26,7 @@ func (r Reader) SignUp(ctx context.Context, reader ent.Reader) error {
 }
 
 func (r Reader) SignIn(ctx context.Context, creds ent.Credentials) (ent.Token, error) {
-	reader, err := r.repo.GetByEmailOrID(ctx, ent.Reader{Email: creds.Email})
+	reader, err := r.GetByEmailOrID(ctx, ent.Reader{Email: creds.Email})
 
 	if err != nil {
 		return ent.Token{}, fmt.Errorf("singin error: %w", err)

@@ -12,6 +12,11 @@ type ReaderLogic interface {
 	SignOut(context.Context, ent.Reader) error
 }
 
+type SessionLogic interface {
+	Create(context.Context, ent.Token) error
+	Find(context.Context, string) (ent.Token, error)
+}
+
 type BookLogic interface {
 	Add(ent.Book) error
 	GetAll(ent.DataFilter) []ent.Book
