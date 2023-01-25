@@ -6,24 +6,29 @@ import (
 
 	"github.com/delveper/mylib/app/ent"
 	"github.com/delveper/mylib/app/exc"
-	"github.com/delveper/mylib/lib/tokay"
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 )
 
 type Reader struct {
-	ReaderLogic
-	SessionLogic
+	logic ReaderLogic
 }
 
-type ReaderKey int
-
-const readerKey ReaderKey = iota
-
-func NewReader(logic ReaderLogic, session SessionLogic) Reader {
+func NewReader(logic ReaderLogic) Reader {
 	return Reader{
-		ReaderLogic:  logic,
-		SessionLogic: session,
+		logic: logic,
+	}
+}
+
+type TokenPair struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+func newTokenPair(pair *ent.TokenPair) TokenPair {
+	return TokenPair{
+		AccessToken:  pair.Access.Value,
+		RefreshToken: pair.Refresh.Value,
 	}
 }
 
@@ -34,23 +39,11 @@ func (r Reader) Route(router chi.Router) {
 
 	router.Route("/auth", func(router chi.Router) {
 		router.Method(http.MethodPost, "/login", r.Login())
+
+		router.Use(WithAuth)
 		router.Method(http.MethodPost, "/logout", r.Logout())
-		router.Method(http.MethodPost, "/token", nil)
+		router.Method(http.MethodPost, "/refresh-token", nil)
 	})
-}
-
-func withReader(ctx context.Context, reader *ent.Reader) context.Context {
-	return context.WithValue(ctx, readerKey, reader)
-}
-
-func extractReader(ctx context.Context) *ent.Reader {
-	val := ctx.Value(readerKey)
-	reader, ok := val.(*ent.Reader)
-	if !ok {
-		return nil
-	}
-
-	return reader
 }
 
 // Create creates new ent.Reader.
@@ -71,10 +64,7 @@ func (r Reader) Create() HandlerLoggerFunc {
 			return
 		}
 
-		logger.Debugf("Reader validated.")
-
 		reader.Normalize()
-		logger.Debugf("Reader normalized.")
 
 		if err := reader.HashPassword(); err != nil {
 			respond(rw, req, http.StatusInternalServerError, exc.ErrHashing)
@@ -83,12 +73,10 @@ func (r Reader) Create() HandlerLoggerFunc {
 			return
 		}
 
-		logger.Debugw("Readers password hashed.")
-
 		ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 		defer cancel()
 
-		if err := r.SignUp(ctx, reader); err != nil {
+		if err := r.logic.SignUp(ctx, reader); err != nil {
 			switch {
 			case errors.Is(err, exc.ErrDeadline):
 				respond(rw, req, http.StatusGatewayTimeout, exc.ErrDeadline)
@@ -107,7 +95,7 @@ func (r Reader) Create() HandlerLoggerFunc {
 
 		resp := response{Message: "Reader successfully created."}
 		respond(rw, req, http.StatusCreated, resp)
-		logger.Debugw(resp.Message)
+		logger.Debugf(resp.Message)
 	}
 }
 
@@ -134,95 +122,79 @@ func (r Reader) Login() HandlerLoggerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 		defer cancel()
 
-		reader, err := r.SignIn(ctx, creds)
+		tokenPair, err := r.logic.SignIn(ctx, creds)
 		if err != nil {
 			switch {
 			case errors.Is(err, exc.ErrDeadline):
 				respond(rw, req, http.StatusGatewayTimeout, exc.ErrDeadline)
+			case errors.Is(err, exc.ErrTokenCreating):
+				respond(rw, req, http.StatusBadGateway, exc.ErrTokenCreating)
 			case errors.Is(err, exc.ErrInvalidCredits):
 				respond(rw, req, http.StatusUnauthorized, exc.ErrNotAuthorized)
 			default:
 				respond(rw, req, http.StatusInternalServerError, exc.ErrUnexpected)
 			}
 
-			logger.Debugw("Failed signup reader", "error", err)
+			logger.Debugw("Failed signup reader.", "error", err)
 
 			return
 		}
 
-		tokenPair, err := tokay.NewTokenPair(reader.ID, reader.IsAdmin)
-		if err != nil {
-			respond(rw, req, http.StatusInternalServerError, exc.ErrUnexpected)
-			logger.Errorw("Failed creating token.", "error", err)
+		setCookie(rw, tokenCookieKey, tokenPair.Refresh.Value, tokenPair.Refresh.Expiry, 0)
 
-			return
-		}
-
-		token := ent.NewToken(tokenPair.Refresh.ID, reader.ID, tokenPair.Refresh.Expiration)
-
-		if err := r.SessionLogic.Create(ctx, token); err != nil {
-			respond(rw, req, http.StatusInternalServerError, exc.ErrUnexpected)
-			logger.Errorw("Failed creating session.", "error", err)
-
-			return
-		}
-
-		setCookie(rw, "refresh_token", tokenPair.Refresh.Value, tokenPair.Refresh.Expiration)
-
-		respond(rw, req, http.StatusOK, tokenPair)
+		resp := newTokenPair(tokenPair)
+		respond(rw, req.WithContext(ctx), http.StatusOK, resp)
 		logger.Debugf("Reader authorized successfully.")
 	}
 }
 
 func (r Reader) Logout() HandlerLoggerFunc {
 	return func(rw http.ResponseWriter, req *http.Request, logger ent.Logger) {
-		http.Redirect(rw, req, "/", http.StatusSeeOther)
+		token := tokenFromRequest(req)
+
+		ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+		defer cancel()
+
+		if err := r.logic.SignOut(ctx, token); err != nil {
+			switch {
+			case errors.Is(err, exc.ErrDeadline):
+				respond(rw, req, http.StatusGatewayTimeout, exc.ErrDeadline)
+			case errors.Is(err, exc.ErrTokenExpired),
+				errors.Is(err, exc.ErrTokenInvalid),
+				errors.Is(err, exc.ErrTokenInvalidSigningMethod):
+				respond(rw, req, http.StatusUnauthorized, err)
+			default:
+				respond(rw, req, http.StatusInternalServerError, exc.ErrUnexpected)
+			}
+
+			logger.Debugw("Failed signup reader.", "error", err)
+			return
+		}
+
+		resp := response{Message: "Reader logout went successfully."}
+		respond(rw, req, http.StatusOK, resp)
+		logger.Debugf(resp.Message)
 	}
 }
 
 func (r Reader) Refresh() HandlerLoggerFunc {
 	return func(rw http.ResponseWriter, req *http.Request, logger ent.Logger) {
-		cookie, err := req.Cookie(tokenKey)
-		if errors.Is(err, http.ErrNoCookie) {
-			respond(rw, req, http.StatusUnauthorized, exc.ErrNotAuthorized)
-			logger.Errorw("Failed retrieving token from cookie.", "error", err)
+		token := tokenFromRequest(req)
 
-			return
-		}
+		ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+		defer cancel()
 
+		tokenPair, err := r.logic.Refresh(ctx, token)
 		if err != nil {
-			respond(rw, req, http.StatusBadRequest, err)
-			logger.Errorw("Failed retrieving token from cookie.", "error", err)
+			respond(rw, req, http.StatusUnauthorized, err)
+			logger.Errorw("Failed checking auth details during refreshing token.", "error", err)
 
 			return
 		}
 
-		if err := tokay.Check(cookie.Value); err != nil {
-			switch {
-			case errors.Is(err, exc.ErrTokenExpired),
-				errors.Is(err, exc.ErrTokenInvalid),
-				errors.Is(err, exc.ErrTokenInvalidSigningMethod):
-				respond(rw, req, http.StatusUnauthorized, err)
-				logger.Errorw("Failed validate token.", "error", err)
-			default:
-				respond(rw, req, http.StatusBadRequest, err)
-				logger.Errorw("Failed VALIDATE token.", "error", exc.ErrUnexpected)
-			}
+		setCookie(rw, tokenCookieKey, "", -1, 0)
 
-			return
-		}
-
-		token, err := tokay.NewTokenPair("", true)
-		if err != nil {
-			respond(rw, req, http.StatusInternalServerError, exc.ErrUnexpected)
-			logger.Errorw("Failed creating token.", "error", err)
-
-			return
-		}
-		_ = token
-
-		resp := response{Message: "Token refreshed successfully."}
-		respond(rw, req, http.StatusOK, resp)
-		logger.Debugf(resp.Message)
+		respond(rw, req, http.StatusOK, tokenPair)
+		logger.Debugf("Tokens refreshed successfully.")
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/delveper/mylib/app/ent"
 	"github.com/delveper/mylib/app/logic"
 	repo "github.com/delveper/mylib/app/repo/psql"
+	"github.com/delveper/mylib/app/repo/rds"
 	"github.com/delveper/mylib/app/trans/rest"
 	"github.com/delveper/mylib/lib/banderlog"
 	"github.com/delveper/mylib/lib/env"
@@ -20,7 +21,6 @@ func main() {
 	}
 
 	var logger ent.Logger = banderlog.New()
-
 	defer func() {
 		if err := logger.Flush(); err != nil {
 			log.Printf("Failed flush logger: %+v", err)
@@ -33,7 +33,6 @@ func main() {
 		logger.Errorf("Failed connecting to repo: %+v", err)
 		return
 	}
-
 	defer func() {
 		if err := conn.Close(); err != nil {
 			logger.Warnf("Failed closing repo connection: %+v", err)
@@ -43,14 +42,28 @@ func main() {
 
 	migration := mig.New()
 	migration.SetLogger(logger)
-
 	if err := migration.Run(conn); err != nil {
 		logger.Errorf("Failed making migrations: %+v", err)
 		return
 	}
 
+	client, err := rds.Connect()
+	if err != nil {
+		logger.Errorf("Failed connecting to session repo: %+v", err)
+		return
+	}
+	defer func() {
+		if err := client.Close(); err != nil {
+			logger.Warnf("Failed closing session repo connection: %+v", err)
+		}
+	}()
+
+	session := rds.NewToken(client)
 	readerRepo := repo.NewReader(conn)
+
 	readerLogic := logic.NewReader(readerRepo)
+	sessionLogic := logic.NewSession(session)
+
 	readerREST := rest.NewReader(readerLogic)
 
 	rtr := rest.NewRouter(readerREST.Route)

@@ -11,9 +11,10 @@ type ReaderRepository interface {
 	GetByEmailOrID(context.Context, ent.Reader) (ent.Reader, error)
 }
 
-type SessionRepository interface {
-	Add(context.Context, ent.Token) error
-	GetByID(context.Context, string) (ent.Token, error)
+type TokenRepository interface {
+	Create(context.Context, ent.Token) error
+	Find(context.Context, ent.Token) (*ent.Token, error)
+	Destroy(context.Context, ent.Token) error
 }
 
 type BookRepository interface {

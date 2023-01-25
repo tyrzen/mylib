@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/delveper/mylib/app/ent"
-	"github.com/pkg/errors"
 )
 
 type response struct {
@@ -20,20 +20,16 @@ type response struct {
 // HandlerLoggerFunc main func that will be used for all handlers.
 type HandlerLoggerFunc func(http.ResponseWriter, *http.Request, ent.Logger)
 
-type LoggerKey int
-
-const loggerKey LoggerKey = iota // var loggerKey = &struct{}{}
-
 // ServeHTTP gives handlerLoggerFunc feature of http.Handler.
 // ps. don't be dogmatic about injecting logger into context.
 func (hlf HandlerLoggerFunc) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	hlf(rw, req, extractLogger(rw, req))
+	hlf(rw, req, loggerFromContext(rw, req))
 }
 
-func extractLogger(rw http.ResponseWriter, req *http.Request) ent.Logger {
-	logger, ok := req.Context().Value(loggerKey).(ent.Logger)
+func loggerFromContext(rw http.ResponseWriter, req *http.Request) ent.Logger {
+	logger, ok := req.Context().Value(loggerContextKey).(ent.Logger)
 	if !ok {
-		respond(rw, req, http.StatusInternalServerError, errors.New("failed extracting logger from request"))
+		respond(rw, req, http.StatusInternalServerError, ErrLoggerNotFound)
 	}
 
 	return logger
@@ -52,12 +48,13 @@ func decodeBody(req *http.Request, data any) (err error) {
 
 	return nil
 }
-func setCookie(rw http.ResponseWriter, name, val string, exp time.Duration) {
+func setCookie(rw http.ResponseWriter, name, val string, exp time.Duration, age int) {
 	http.SetCookie(rw, &http.Cookie{
 		Name:     name,
 		Value:    val,
 		Domain:   os.Getenv("SRV_HOST"),
 		Path:     "/auth",
+		MaxAge:   age,
 		Expires:  time.Now().Add(exp),
 		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,
@@ -66,7 +63,7 @@ func setCookie(rw http.ResponseWriter, name, val string, exp time.Duration) {
 }
 
 func respond(rw http.ResponseWriter, req *http.Request, code int, data any) {
-	logger := extractLogger(rw, req)
+	logger := loggerFromContext(rw, req)
 
 	if data == nil && code != http.StatusNoContent {
 		logger.Errorw("Failed writing response due nil data.",
@@ -103,4 +100,44 @@ func respond(rw http.ResponseWriter, req *http.Request, code int, data any) {
 			"error", fmt.Errorf("%w: %v", ErrWritingResponse, err),
 		)
 	}
+}
+
+func tokenFromRequest(req *http.Request) (token ent.Token) {
+	for _, fn := range []func(*http.Request) string{tokenFromHeader, tokenFromCookie, tokenFromContext} {
+		if val := fn(req); val != "" {
+			return ent.Token{Value: val}
+		}
+	}
+
+	return
+}
+
+func tokenFromHeader(req *http.Request) string {
+	header := req.Header.Get("Authorization")
+	if len(header) > len(bearer) && strings.ToLower(header[:len(bearer)]) == bearer {
+		return header[len(bearer):]
+	}
+
+	return ""
+}
+
+func tokenFromCookie(req *http.Request) string {
+	cookie, err := req.Cookie(tokenCookieKey)
+	if err != nil {
+		return ""
+	}
+
+	return cookie.Value
+}
+
+func tokenFromContext(req *http.Request) string {
+	ctx := req.Context()
+	val := ctx.Value(tokenContextKey)
+	token, ok := val.(string)
+	if !ok || val == "" {
+
+		return ""
+	}
+
+	return token
 }

@@ -2,7 +2,19 @@ package rest
 
 import "time"
 
-const RequestID = "X-Request-ID"
-const tokenKey = "auth"
+const bearer = "bearer"
+
+const xRequestID = "X-Request-ID"
+
+const tokenCookieKey = "auth"
 
 const queryTimeout = 5 * time.Second
+
+type contextKey int
+
+const (
+	loggerContextKey contextKey = iota
+	tokenContextKey
+	requestContextKey
+	readerContextKey
+)

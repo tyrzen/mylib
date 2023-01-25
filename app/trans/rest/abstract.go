@@ -8,13 +8,9 @@ import (
 
 type ReaderLogic interface {
 	SignUp(context.Context, ent.Reader) error
-	SignIn(context.Context, ent.Credentials) (ent.Reader, error)
-	SignOut(context.Context, ent.Reader) error
-}
-
-type SessionLogic interface {
-	Create(context.Context, ent.Token) error
-	Find(context.Context, string) (ent.Token, error)
+	SignIn(context.Context, ent.Credentials) (*ent.TokenPair, error)
+	SignOut(context.Context, ent.Token) error
+	Refresh(context.Context, ent.Token) (*ent.TokenPair, error)
 }
 
 type BookLogic interface {

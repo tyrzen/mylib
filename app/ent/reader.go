@@ -11,12 +11,12 @@ import (
 )
 
 type Reader struct {
-	ID        string    `json:"id"`                                                            // revalid:"(?i)^[0-9a-f]{8}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{12}$"
-	FirstName string    `json:"first_name" revalid:"^[\p{L}&\s-\\'’.]{2,256}$"`                //nolint:govet
-	LastName  string    `json:"last_name" revalid:"^[\p{L}&\s-\\'’.]{2,256}$"`                 //nolint:govet
-	Email     string    `json:"email" revalid:"(?i)(^[a-z0-9_.+-]+@[a-z0-9-]+\.[a-z0-9-.]+$)"` //nolint:govet
+	ID        string    `json:"id"` // revalid:"(?i)^[0-9a-f]{8}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{12}$"
+	FirstName string    `json:"first_name" revalid:"^[\p{L}&\s-\\'’.]{2,256}$"`
+	LastName  string    `json:"last_name" revalid:"^[\p{L}&\s-\\'’.]{2,256}$"`
+	Email     string    `json:"email" revalid:"(?i)(^[a-z0-9_.+-]+@[a-z0-9-]+\.[a-z0-9-.]+$)"`
 	Password  string    `json:"password" revalid:"^[[:graph:]]{8,256}$"`
-	IsAdmin   bool      `json:"is_admin"`
+	Role      string    `json:"role"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -43,7 +43,7 @@ func (r *Reader) HashPassword() (err error) {
 }
 
 func (r *Reader) CheckPassword(password string) error {
-	if err := hash.Check(password, r.Password); err != nil {
+	if err := hash.Verify(password, r.Password); err != nil {
 		return fmt.Errorf("%w: %v", exc.ErrComparingHash, err)
 	}
 

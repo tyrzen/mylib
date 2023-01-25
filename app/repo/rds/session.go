@@ -10,31 +10,47 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Session struct{ *redis.Client }
-
-func NewSession(client *redis.Client) Session {
-	return Session{client}
+type Token struct {
+	client *redis.Client
 }
 
-func (t Session) Add(ctx context.Context, token ent.Token) error {
-	if err := t.Set(ctx, token.ID, token.UID, token.Expiration).Err(); err != nil {
+func NewToken(client *redis.Client) Token {
+	return Token{client}
+}
+
+func (s Token) Create(ctx context.Context, token ent.Token) error {
+	if err := s.client.Set(ctx, token.ID, token.UID, token.Expiry).Err(); err != nil {
 		return fmt.Errorf("recording session: %w", err)
 	}
 
 	return nil
 }
 
-func (t Session) GetByID(ctx context.Context, id string) (ent.Token, error) {
-	uid, err := t.Get(ctx, id).Result()
+func (s Token) Find(ctx context.Context, token ent.Token) (*ent.Token, error) {
+	uid, err := s.client.Get(ctx, token.ID).Result()
 	if errors.Is(err, redis.Nil) {
-		return ent.Token{}, fmt.Errorf("nil record: %w", exc.ErrTokenNotFound)
+		return nil, fmt.Errorf("nil record: %w", exc.ErrTokenNotFound)
 	}
 
 	if err != nil {
-		return ent.Token{}, fmt.Errorf("error fetching record: %w", exc.ErrUnexpected)
+		return nil, fmt.Errorf("error fetching record: %w", exc.ErrUnexpected)
 	}
 
-	token := ent.NewToken(id, uid, 0)
+	token.UID = uid
 
-	return token, nil
+	return &token, nil
+}
+
+func (s Token) Destroy(ctx context.Context, token ent.Token) error {
+	_, err := s.client.Del(ctx, token.ID).Result()
+
+	if errors.Is(err, redis.Nil) {
+		return fmt.Errorf("nil record: %w", exc.ErrTokenNotFound)
+	}
+
+	if err != nil {
+		return fmt.Errorf("error fetching record: %w", exc.ErrUnexpected)
+	}
+
+	return nil
 }
