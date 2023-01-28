@@ -26,19 +26,19 @@ func (s Token) Create(ctx context.Context, token ent.Token) error {
 	return nil
 }
 
-func (s Token) Find(ctx context.Context, token ent.Token) (*ent.Token, error) {
+func (s Token) Find(ctx context.Context, token ent.Token) (ent.Token, error) {
 	uid, err := s.client.Get(ctx, token.ID).Result()
 	if errors.Is(err, redis.Nil) {
-		return nil, fmt.Errorf("nil record: %w", exc.ErrTokenNotFound)
+		return ent.Token{}, fmt.Errorf("nil record: %w", exc.ErrTokenNotFound)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error fetching record: %w", exc.ErrUnexpected)
+		return ent.Token{}, fmt.Errorf("error fetching record: %w", exc.ErrUnexpected)
 	}
 
 	token.UID = uid
 
-	return &token, nil
+	return token, nil
 }
 
 func (s Token) Destroy(ctx context.Context, token ent.Token) error {

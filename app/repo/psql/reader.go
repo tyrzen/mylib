@@ -22,7 +22,11 @@ func NewReader(db *sql.DB) *Reader {
 func (r Reader) Add(ctx context.Context, reader ent.Reader) error {
 	reader.CreatedAt = time.Now()
 
-	_, err := r.ExecContext(ctx, queryCreateReader,
+	const SQL = `
+				INSERT INTO readers (id, first_name, last_name, email, password, created_at)
+					VALUES(gen_random_uuid(), $1, $2, $3, $4, NOW())--RETURNING *;
+`
+	_, err := r.ExecContext(ctx, SQL,
 		reader.FirstName, // $1
 		reader.LastName,  // $2
 		reader.Email,     // $3
@@ -50,12 +54,14 @@ func (r Reader) Add(ctx context.Context, reader ent.Reader) error {
 	return nil
 }
 
-// GetByEmailOrID will retrieve ent.Reader by given UserID, Email or both parameters.
-func (r Reader) GetByEmailOrID(ctx context.Context, reader ent.Reader) (ent.Reader, error) {
-	row := r.QueryRowContext(ctx, queryFindReader,
-		reader.ID,    // $1
-		reader.Email, // $2
-	)
+// GetByID retrieves ent.Reader by given UserID.
+func (r Reader) GetByID(ctx context.Context, reader ent.Reader) (ent.Reader, error) {
+	const SQL = `
+				SELECT id, first_name, last_name, email, password, created_at 
+				FROM readers 
+				WHERE id=$1;
+`
+	row := r.QueryRowContext(ctx, SQL, reader.ID)
 
 	err := row.Scan(
 		&reader.ID,
@@ -65,7 +71,37 @@ func (r Reader) GetByEmailOrID(ctx context.Context, reader ent.Reader) (ent.Read
 		&reader.Password,
 		&reader.CreatedAt,
 	)
+	if err != nil {
+		switch {
+		case errors.Is(err, context.DeadlineExceeded):
+			return ent.Reader{}, fmt.Errorf("%w: %v", exc.ErrDeadline, err)
+		case errors.Is(err, sql.ErrNoRows):
+			return ent.Reader{}, fmt.Errorf("%w: %v", exc.ErrNoRecord, err)
+		default:
+			return ent.Reader{}, fmt.Errorf("%w: %v", exc.ErrUnexpected, err)
+		}
+	}
 
+	return reader, nil
+}
+
+// GetByEmail retrieves ent.Reader email.
+func (r Reader) GetByEmail(ctx context.Context, reader ent.Reader) (ent.Reader, error) {
+	const SQL = `
+				SELECT id, first_name, last_name, email, password, created_at 
+				FROM readers 
+				WHERE email=$1;
+`
+	row := r.QueryRowContext(ctx, SQL, reader.Email)
+
+	err := row.Scan(
+		&reader.ID,
+		&reader.FirstName,
+		&reader.LastName,
+		&reader.Email,
+		&reader.Password,
+		&reader.CreatedAt,
+	)
 	if err != nil {
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):

@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -10,13 +11,21 @@ import (
 	"github.com/pkg/errors"
 )
 
+type JWT struct{}
+
+func New() JWT {
+	return JWT{}
+}
+
 type Claims struct {
 	MetaData any `json:"data"`
 	jwt.StandardClaims
 }
 
-func ParseJWT(val string, key string) (data any, err error) {
+func (t JWT) Parse(val, key string) (data any, err error) {
 	var claims Claims
+
+	log.Println(val)
 
 	token, err := jwt.ParseWithClaims(val, &claims, func(*jwt.Token) (interface{}, error) {
 		return []byte(key), nil
@@ -42,7 +51,7 @@ func ParseJWT(val string, key string) (data any, err error) {
 	return data, nil
 }
 
-func MakeJWT(alg, key string, exp time.Duration, data any) (string, error) {
+func (t JWT) Make(alg, key string, exp time.Duration, data any) (string, error) {
 	method, err := selectMethod(alg)
 	if err != nil {
 		return "", fmt.Errorf("error parsing method: %w", err)

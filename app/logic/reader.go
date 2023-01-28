@@ -3,36 +3,54 @@ package logic
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/delveper/mylib/app/ent"
 	"github.com/delveper/mylib/app/exc"
 	"github.com/delveper/mylib/lib/hash"
-	"github.com/delveper/mylib/lib/jwt"
 )
 
 type Reader struct {
 	repo ReaderRepository
 	sess TokenRepository
+	jwt  Tokenizer
 }
 
-func NewReader(repo ReaderRepository, sess TokenRepository) Reader {
+func NewReader(repo ReaderRepository, sess TokenRepository, jwt Tokenizer) Reader {
 	return Reader{
 		repo: repo,
 		sess: sess,
+		jwt:  jwt,
 	}
+}
+
+func (r Reader) Auth(ctx context.Context, token ent.Token) error {
+	accessToken, err := r.retrieveToken(token)
+	if err != nil {
+		return fmt.Errorf("%v: %w", err, exc.ErrTokenInvalid)
+	}
+
+	savedToken, err := r.sess.Find(ctx, accessToken)
+	if err != nil {
+		return fmt.Errorf("%v: %w", err, exc.ErrTokenInvalid)
+	}
+
+	if accessToken.UID != savedToken.UID {
+		return exc.ErrTokenInvalid
+	}
+
+	return nil
 }
 
 func (r Reader) SignUp(ctx context.Context, reader ent.Reader) error {
 	if err := r.repo.Add(ctx, reader); err != nil {
-		return err
+		return fmt.Errorf("error signup reader: %w", err)
 	}
 
 	return nil
 }
 
 func (r Reader) SignIn(ctx context.Context, creds ent.Credentials) (*ent.TokenPair, error) {
-	reader, err := r.repo.GetByEmailOrID(ctx, ent.Reader{Email: creds.Email})
+	reader, err := r.repo.GetByEmail(ctx, ent.Reader{Email: creds.Email})
 	if err != nil {
 		return nil, fmt.Errorf("errror fetching reader: %w", err)
 	}
@@ -41,41 +59,18 @@ func (r Reader) SignIn(ctx context.Context, creds ent.Credentials) (*ent.TokenPa
 		return nil, exc.ErrInvalidCredits
 	}
 
-	refreshToken, err := NewRefreshToken(reader.ID)
+	tokenPair, err := r.newTokenPair(ctx, reader)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, exc.ErrTokenCreating)
 	}
 
-	if err = r.sess.Create(ctx, *refreshToken); err != nil {
-		return nil, fmt.Errorf("%v: %w", err, exc.ErrTokenCreating)
-	}
-
-	accessToken, err := NewAccessToken(refreshToken.ID, reader.Role)
-	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, exc.ErrTokenCreating)
-	}
-
-	if err = r.sess.Create(ctx, *accessToken); err != nil {
-		return nil, fmt.Errorf("%v: %w", err, exc.ErrTokenCreating)
-	}
-
-	return &ent.TokenPair{
-		Access:  *accessToken,
-		Refresh: *refreshToken,
-	}, nil
+	return tokenPair, nil
 }
 
 func (r Reader) SignOut(ctx context.Context, token ent.Token) error {
-	key := os.Getenv("JWT_KEY")
-
-	payload, err := jwt.ParseJWT(token.Value, key)
+	accessToken, err := r.retrieveToken(token)
 	if err != nil {
-		return fmt.Errorf("error parsing token: %w", err)
-	}
-
-	accessToken, ok := payload.(ent.Token)
-	if !ok {
-		return exc.ErrUnexpected
+		return fmt.Errorf("%v: %w", err, exc.ErrTokenInvalid)
 	}
 
 	if err := r.sess.Destroy(ctx, accessToken); err != nil {
@@ -88,4 +83,27 @@ func (r Reader) SignOut(ctx context.Context, token ent.Token) error {
 	}
 
 	return nil
+}
+
+func (r Reader) Refresh(ctx context.Context, token ent.Token) (*ent.TokenPair, error) {
+	refreshToken, err := r.retrieveToken(token)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", exc.ErrTokenInvalid, err)
+	}
+
+	if err := r.sess.Destroy(ctx, refreshToken); err != nil {
+		return nil, fmt.Errorf("error destroying refresh token: %w", err)
+	}
+
+	reader, err := r.repo.GetByID(ctx, ent.Reader{ID: refreshToken.ID})
+	if err != nil {
+		return nil, fmt.Errorf("errror fetching reader: %w", err)
+	}
+
+	tokenPair, err := r.newTokenPair(ctx, reader)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, exc.ErrTokenCreating)
+	}
+
+	return tokenPair, nil
 }

@@ -1,12 +1,9 @@
-{"level":"INFO","time":"2023-01-15T15:46:55.551+0200","message":"Logger set up with level: debug"}
-{"level":"INFO","time":"2023-01-15T15:46:55.644+0200","message":"Connection to repo established."}
-{"level":"INFO","time":"2023-01-15T15:46:55.673+0200","message":"goose: no migrations to run. current version: 5\n"}
-{"level":"INFO","time":"2023-01-15T15:46:55.674+0200","message":"Router successfully created."}
-{"level":"INFO","time":"2023-01-15T15:46:55.674+0200","message":"Pre-middleware set up."}
-{"level":"DEBUG","time":"2023-01-15T15:47:17.238+0200","message":"Request:","id":"5e37fdc0-b49d-4fb3-b08b-d451b1afc8e8","method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:38898"}
-{"level":"DEBUG","time":"2023-01-15T15:47:17.255+0200","message":"Reader validated."}
-{"level":"DEBUG","time":"2023-01-15T15:47:17.256+0200","message":"Reader normalized."}
-{"level":"DEBUG","time":"2023-01-15T15:47:17.359+0200","message":"Readers password hashed."}
-{"level":"ERROR","time":"2023-01-15T15:47:17.375+0200","message":"Failed creating reader: email is already taken: ERROR: duplicate key value violates unique constraint \"readers_email_key\" (SQLSTATE 23505)"}
-{"level":"DEBUG","time":"2023-01-15T15:48:37.926+0200","message":"Request:","id":"9ff17e87-073e-4d90-a032-d14a9196bf6f","method":"GET","uri":"/","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36","remote":"127.0.0.1:56856"}
-{"level":"DEBUG","time":"2023-01-15T15:48:38.993+0200","message":"Request:","id":"bd5f45e2-78df-4fc0-b5e0-a19a4bc0a85b","method":"GET","uri":"/favicon.ico","user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36","remote":"127.0.0.1:56856"}
+{"level":"INFO","time":"2023-01-28T15:52:57.753+0200","message":"Logger set up with level: debug"}
+{"level":"INFO","time":"2023-01-28T15:52:57.809+0200","message":"Connection to repo established."}
+{"level":"INFO","time":"2023-01-28T15:52:57.822+0200","message":"goose: no migrations to run. current version: 5\n"}
+{"level":"INFO","time":"2023-01-28T15:52:57.829+0200","message":"Router successfully created."}
+{"level":"INFO","time":"2023-01-28T15:52:57.829+0200","message":"Pre-middleware set up."}
+{"level":"DEBUG","time":"2023-01-28T15:52:58.851+0200","message":"Request:","id":"46729185-4129-468b-8fce-aee7eb402753","method":"POST","uri":"/auth/login","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:58638"}
+{"level":"DEBUG","time":"2023-01-28T15:52:58.959+0200","message":"Reader authorized successfully."}
+{"level":"DEBUG","time":"2023-01-28T15:53:21.097+0200","message":"Request:","id":"09076a47-d183-43ee-8f69-1dff1fa4fce7","method":"POST","uri":"/auth/logout","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:58638"}
+{"level":"ERROR","time":"2023-01-28T15:53:21.098+0200","message":"Failed validate token.","error":"error parsing token metadata: {ID: UID: Role: Value: Expiry:0s}: token invalid"}

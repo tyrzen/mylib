@@ -14,13 +14,3 @@ type TokenPair struct {
 	Access  Token
 	Refresh Token
 }
-
-func NewToken(id, uid, role, val string, exp time.Duration) Token {
-	return Token{
-		ID:     id,
-		UID:    uid,
-		Role:   role,
-		Value:  val,
-		Expiry: exp,
-	}
-}

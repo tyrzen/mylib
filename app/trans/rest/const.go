@@ -6,7 +6,7 @@ const bearer = "bearer"
 
 const xRequestID = "X-Request-ID"
 
-const tokenCookieKey = "auth"
+const refreshTokenKey = "refresh_token"
 
 const queryTimeout = 5 * time.Second
 
