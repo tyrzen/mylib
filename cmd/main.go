@@ -4,28 +4,46 @@ import (
 	"log"
 	"os"
 
-	"github.com/delveper/mylib/app/ent"
-	"github.com/delveper/mylib/app/logic"
-	repo "github.com/delveper/mylib/app/repo/psql"
-	"github.com/delveper/mylib/app/repo/rds"
-	"github.com/delveper/mylib/app/trans/rest"
+	"github.com/delveper/mylib/app/models"
+	"github.com/delveper/mylib/app/presenters/rest"
+	repo "github.com/delveper/mylib/app/repository/psql"
+	"github.com/delveper/mylib/app/repository/rds"
+	"github.com/delveper/mylib/app/usecases"
 	"github.com/delveper/mylib/lib/banderlog"
 	"github.com/delveper/mylib/lib/env"
-	"github.com/delveper/mylib/lib/jwt"
 	"github.com/delveper/mylib/mig"
 )
 
 func main() {
 	run()
 	/*	env.LoadVars()
-		val := `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.HE7fK0xOQwFEr4WDgRWj4teRPZ6i3GLwD5YCm6Pwu_c`
-		logic := jwt.New()
+
+		alg := os.Getenv("JWT_ALG")
 		key := os.Getenv("JWT_KEY")
-		data, err := logic.Parse(val, key)
-		log.Println(err)
-		log.Println(key)
+
+		exp, err := time.ParseDuration(os.Getenv("JWT_ACCESS_EXP"))
+		if err != nil {
+			log.Fatalf("error parsing refresh token expirity: %v", err)
+		}
+
+		id := xid.New().String()
+
+		payload := models.AccessToken{ID: id, RefreshTokenID: "<blank>", Expiry: exp}
+
+		token, err := tokay.Make[models.AccessToken](alg, key, exp, payload)
+		log.Println(token)
+		if err != nil {
+			log.Fatalf("error making token: %v", err)
+		}
+
+		data, err := tokay.Parse[models.AccessToken](token, key)
+		if err != nil {
+			log.Fatalf("error parsing token: %v", err)
+		}
+
 		log.Printf("%T\n", data)
 		log.Printf("%+v", data)
+
 	*/
 }
 
@@ -35,7 +53,7 @@ func run() {
 		return
 	}
 
-	var logger ent.Logger = banderlog.New()
+	var logger models.Logger = banderlog.New()
 	defer func() {
 		if err := logger.Flush(); err != nil {
 			log.Printf("Failed flush logger: %+v", err)
@@ -78,9 +96,8 @@ func run() {
 
 	readerRepo := repo.NewReader(conn)
 	tokenRepo := rds.NewToken(client)
-	jwtLogic := jwt.New()
 
-	readerLogic := logic.NewReader(readerRepo, tokenRepo, jwtLogic)
+	readerLogic := usecases.NewReader(readerRepo, tokenRepo)
 
 	readerREST := rest.NewReader(readerLogic, logger)
 

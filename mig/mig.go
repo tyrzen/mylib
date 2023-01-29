@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/delveper/mylib/app/ent"
+	"github.com/delveper/mylib/app/models"
 	"github.com/pressly/goose/v3"
 )
 
@@ -22,7 +22,7 @@ func New() Migration {
 	return Migration{&fs}
 }
 
-func (m Migration) SetLogger(logger ent.Logger) {
+func (m Migration) SetLogger(logger models.Logger) {
 	goose.SetLogger(logger)
 }
 
