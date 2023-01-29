@@ -8,7 +8,7 @@ CREATE TABLE readers
     last_name  VARCHAR(255)                DEFAULT NULL,
     email      VARCHAR(255) UNIQUE NOT NULL,
     password   CHAR(60)            NOT NULL,
-    is_admin   BOOL                        DEFAULT FALSE,
+    role       CHAR(16)                    DEFAULT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
 

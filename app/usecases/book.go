@@ -1,15 +1,21 @@
 package usecases
 
-import "github.com/delveper/mylib/app/models"
+import (
+	"context"
+
+	"github.com/delveper/mylib/app/models"
+)
 
 type Book struct {
-	repo   BookRepository
-	logger models.Logger
+	repo BookRepository
 }
 
-func NewBook(repo BookRepository, logger models.Logger) Book {
+func NewBook(repo BookRepository) Book {
 	return Book{
-		repo:   repo,
-		logger: logger,
+		repo: repo,
 	}
+}
+
+func (b Book) Import(ctx context.Context, book models.Book) error {
+	return nil
 }

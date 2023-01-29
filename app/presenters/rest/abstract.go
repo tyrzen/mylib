@@ -15,10 +15,5 @@ type ReaderLogic interface {
 }
 
 type BookLogic interface {
-	Add(models.Book) error
-	GetAll(models.DataFilter) []models.Book
-	GetByID(string) models.Book
-	AddToFavorites(models.Book) error
-	AddToWishList(models.Book) error
-	ExportLibrary() error
+	Import(context.Context, models.Book) error
 }

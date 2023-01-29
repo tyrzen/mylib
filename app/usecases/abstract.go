@@ -18,11 +18,10 @@ type TokenRepository interface {
 	Destroy(context.Context, models.Token) error
 }
 
+type AuthorRepository interface {
+	GetByID(context.Context, models.Author) (models.Author, error)
+}
+
 type BookRepository interface {
-	Add(models.Book) error
-	GetAll(models.DataFilter) []models.Book
-	GetByID(string) models.Book
-	AddToFavorites(models.Book) error
-	AddToWishList(models.Book) error
-	ExportLibrary() error
+	Add(context.Context, models.Book) error
 }

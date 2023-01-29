@@ -9,6 +9,7 @@ import (
 	"github.com/delveper/mylib/app/models"
 )
 
+// responder designed to do all the heavy lifting on transport level.
 type responder struct{ models.Logger }
 
 type response struct {
@@ -16,7 +17,7 @@ type response struct {
 	Details string `json:"details,omitempty"`
 }
 
-func (r responder) decodeBody(req *http.Request, data any) (err error) {
+func (r responder) DecodeBody(req *http.Request, data any) (err error) {
 	defer func() {
 		if e := req.Body.Close(); e != nil {
 			r.Errorw("error while closing request body", "error", err)

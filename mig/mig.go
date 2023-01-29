@@ -28,6 +28,7 @@ func (m Migration) SetLogger(logger models.Logger) {
 
 func (m Migration) Run(db *sql.DB) error {
 	goose.SetBaseFS(m.FS)
+
 	defer func() {
 		goose.SetBaseFS(nil)
 	}()

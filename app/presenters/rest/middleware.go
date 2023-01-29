@@ -64,7 +64,7 @@ func WithLogRequest(logger models.Logger) func(http.Handler) http.Handler {
 }
 
 // WithAuth will check if token is valid.
-func (r Reader) WithAuth(next http.Handler) http.Handler {
+func (r responder) WithAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		val := retrieveJWT(req)
 		key := os.Getenv("JWT_KEY")
@@ -76,18 +76,18 @@ func (r Reader) WithAuth(next http.Handler) http.Handler {
 				errors.Is(err, exceptions.ErrTokenInvalid),
 				errors.Is(err, exceptions.ErrTokenNotFound),
 				errors.Is(err, exceptions.ErrTokenInvalidSigningMethod):
-				r.resp.Write(rw, req, http.StatusUnauthorized, err)
-				r.resp.Errorw("Failed validate token.",
+				r.Write(rw, req, http.StatusUnauthorized, err)
+				r.Errorw("Failed validate token.",
 					"access_token", val,
 					"error", err)
 			default:
-				r.resp.Write(rw, req, http.StatusBadRequest, err)
-				r.resp.Errorw("Failed validate token.",
+				r.Write(rw, req, http.StatusBadRequest, err)
+				r.Errorw("Failed validate token.",
 					"access_token", val,
 					"error", exceptions.ErrUnexpected)
 			}
 
-			r.resp.Debugw("Token validated.", "token", token)
+			r.Debugw("Token validated.", "token", token)
 			return
 		}
 
@@ -96,20 +96,20 @@ func (r Reader) WithAuth(next http.Handler) http.Handler {
 	})
 }
 
-func (r Reader) WithRole(role string) func(http.Handler) http.Handler {
+func (r responder) WithRole(role string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			val := req.Context().Value(tokenContextKey)
 
 			token, ok := val.(models.AccessToken)
 			if !ok {
-				r.resp.Write(rw, req, http.StatusUnprocessableEntity, exceptions.ErrTokenNotFound)
-				r.resp.Errorw("Failed retrieve token from context.", "error", exceptions.ErrTokenNotFound)
+				r.Write(rw, req, http.StatusUnprocessableEntity, exceptions.ErrTokenNotFound)
+				r.Errorw("Failed retrieve token from context.", "error", exceptions.ErrTokenNotFound)
 			}
 
 			if token.Role != role {
-				r.resp.Write(rw, req, http.StatusUnauthorized, ErrPermissions)
-				r.resp.Infow("Failed check permissions.", "error", ErrPermissions)
+				r.Write(rw, req, http.StatusUnauthorized, ErrPermissions)
+				r.Infow("Failed check permissions.", "error", ErrPermissions)
 			}
 
 			next.ServeHTTP(rw, req)

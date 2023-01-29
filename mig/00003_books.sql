@@ -3,10 +3,11 @@
 CREATE TABLE books
 (
     id         UUID PRIMARY KEY            DEFAULT GEN_RANDOM_UUID(),
-    author_id  UUID REFERENCES authors (id) ON DELETE SET NULL,
-    title      TEXT NOT NULL,
+    author_id  UUID        REFERENCES authors (id) ON DELETE SET NULL,
+    title      TEXT UNIQUE NOT NULL,
     genre      TEXT,
     rate       INTEGER,
+    size       INTEGER,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
 -- +goose StatementEnd

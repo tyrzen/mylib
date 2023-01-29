@@ -105,7 +105,10 @@ func run() {
 
 	logger.Infof("Router successfully created.")
 
-	handler := rest.ChainMiddlewares(router, rest.WithRequestID, rest.WithLogRequest(logger))
+	handler := rest.ChainMiddlewares(router,
+		rest.WithRequestID,
+		rest.WithLogRequest(logger),
+	)
 
 	logger.Infof("Pre-middleware set up.")
 

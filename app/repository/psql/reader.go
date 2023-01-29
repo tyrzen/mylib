@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/delveper/mylib/app/exceptions"
 	"github.com/delveper/mylib/app/models"
@@ -20,19 +19,16 @@ func NewReader(db *sql.DB) *Reader {
 
 // Add adds models.Reader entity.
 func (r Reader) Add(ctx context.Context, reader models.Reader) error {
-	reader.CreatedAt = time.Now()
+	const SQL = `INSERT INTO readers (id, first_name, last_name, email, password, role, created_at)
+					VALUES(GEN_RANDOM_UUID(), $1, $2, $3, $4, NOW());`
 
-	const SQL = `
-				INSERT INTO readers (id, first_name, last_name, email, password, created_at)
-					VALUES(gen_random_uuid(), $1, $2, $3, $4, NOW())--RETURNING *;
-`
 	_, err := r.ExecContext(ctx, SQL,
 		reader.FirstName, // $1
 		reader.LastName,  // $2
 		reader.Email,     // $3
-		reader.Password,  // $4
+		reader.Role,      // $4
+		reader.Password,  // $5
 	)
-
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
@@ -56,11 +52,10 @@ func (r Reader) Add(ctx context.Context, reader models.Reader) error {
 
 // GetByID retrieves models.Reader by given UserID.
 func (r Reader) GetByID(ctx context.Context, reader models.Reader) (models.Reader, error) {
-	const SQL = `
-				SELECT id, first_name, last_name, email, password, created_at 
-				FROM readers 
-				WHERE id=$1;
-`
+	const SQL = `SELECT id, first_name, last_name, email, password, role, created_at 
+				 FROM readers 
+				 WHERE id=$1;`
+
 	row := r.QueryRowContext(ctx, SQL, reader.ID)
 
 	err := row.Scan(
@@ -69,6 +64,7 @@ func (r Reader) GetByID(ctx context.Context, reader models.Reader) (models.Reade
 		&reader.LastName,
 		&reader.Email,
 		&reader.Password,
+		&reader.Role,
 		&reader.CreatedAt,
 	)
 	if err != nil {
@@ -87,11 +83,10 @@ func (r Reader) GetByID(ctx context.Context, reader models.Reader) (models.Reade
 
 // GetByEmail retrieves models.Reader email.
 func (r Reader) GetByEmail(ctx context.Context, reader models.Reader) (models.Reader, error) {
-	const SQL = `
-				SELECT id, first_name, last_name, email, password, created_at 
-				FROM readers 
-				WHERE email=$1;
-`
+	const SQL = `SELECT id, first_name, last_name, email, password, role, created_at 
+				 FROM readers 
+				 WHERE email=$1;`
+
 	row := r.QueryRowContext(ctx, SQL, reader.Email)
 
 	err := row.Scan(
@@ -100,6 +95,7 @@ func (r Reader) GetByEmail(ctx context.Context, reader models.Reader) (models.Re
 		&reader.LastName,
 		&reader.Email,
 		&reader.Password,
+		&reader.Role,
 		&reader.CreatedAt,
 	)
 	if err != nil {

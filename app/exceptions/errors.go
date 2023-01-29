@@ -4,6 +4,7 @@ import "errors"
 
 var ErrValidation = errors.New("validation error")
 var ErrDuplicateEmail = errors.New("email is already taken")
+var ErrDuplicateTitle = errors.New("book with same title is exist")
 var ErrDuplicateID = errors.New("id already exists")
 var ErrNotAuthorized = errors.New("not authorized")
 var ErrNoRecord = errors.New("record not found")

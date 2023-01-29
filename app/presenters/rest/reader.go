@@ -18,15 +18,15 @@ type Reader struct {
 func NewReader(logic ReaderLogic, logger models.Logger) Reader {
 	return Reader{
 		logic: logic,
-		resp:  responder{Logger: logger},
+		resp:  responder{logger},
 	}
 }
 
 func (r Reader) Route(router chi.Router) {
 	router.Route("/auth", func(router chi.Router) {
 		router.Post("/login", r.Login)
-		router.With(r.WithAuth).Post("/token", r.Refresh)
-		router.With(r.WithAuth).Post("/logout", r.Logout)
+		router.With(r.resp.WithAuth).Post("/token", r.Refresh)
+		router.With(r.resp.WithAuth).Post("/logout", r.Logout)
 	})
 
 	router.Route("/readers", func(router chi.Router) {
@@ -37,7 +37,7 @@ func (r Reader) Route(router chi.Router) {
 // Create creates new models.Reader.
 func (r Reader) Create(rw http.ResponseWriter, req *http.Request) {
 	var reader models.Reader
-	if err := r.resp.decodeBody(req, &reader); err != nil {
+	if err := r.resp.DecodeBody(req, &reader); err != nil {
 		r.resp.Write(rw, req, http.StatusBadRequest, ErrDecoding)
 		r.resp.Errorw("Failed decoding reader data from request.", "error", err)
 
@@ -46,7 +46,7 @@ func (r Reader) Create(rw http.ResponseWriter, req *http.Request) {
 
 	if err := reader.OK(); err != nil {
 		r.resp.Write(rw, req, http.StatusBadRequest, err)
-		r.resp.Debugw("Failed validating reader", "error", err)
+		r.resp.Debugw("Failed validating reader.", "error", err)
 
 		return
 	}
@@ -88,7 +88,7 @@ func (r Reader) Create(rw http.ResponseWriter, req *http.Request) {
 // Login handles authorization process of created models.Reader.
 func (r Reader) Login(rw http.ResponseWriter, req *http.Request) {
 	var creds models.Credentials
-	if err := r.resp.decodeBody(req, &creds); err != nil {
+	if err := r.resp.DecodeBody(req, &creds); err != nil {
 		r.resp.Write(rw, req, http.StatusBadRequest, ErrDecoding)
 		r.resp.Errorw("Failed decoding reader data from request.", "error", err)
 
