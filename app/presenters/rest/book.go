@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/delveper/mylib/app/exceptions"
@@ -26,6 +27,7 @@ func (b Book) Route(router chi.Router) {
 	router.With(b.resp.WithAuth, b.resp.WithRole("admin")).
 		Route("/books", func(router chi.Router) {
 			router.Post("/", b.Create)
+			router.Get("/{id}", b.Find)
 		})
 }
 
@@ -52,7 +54,8 @@ func (b Book) Create(rw http.ResponseWriter, req *http.Request) {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
 			b.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
-			// TODO: finish error handling.
+		case errors.Is(err, exceptions.ErrRecordNotFound):
+			b.resp.Write(rw, req, http.StatusExpectationFailed, fmt.Errorf("author : %w", exceptions.ErrRecordNotFound))
 		default:
 			b.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}
@@ -64,5 +67,33 @@ func (b Book) Create(rw http.ResponseWriter, req *http.Request) {
 
 	msg := response{Message: "Book imported successfully."}
 	b.resp.Write(rw, req, http.StatusCreated, msg)
+	b.resp.Debugf(msg.Message)
+}
+
+func (b Book) Find(rw http.ResponseWriter, req *http.Request) {
+	var book models.Book
+	book.ID = chi.URLParam(req, "id")
+
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	book, err := b.logic.Fetch(ctx, book)
+	if err != nil {
+		switch {
+		case errors.Is(err, exceptions.ErrDeadline):
+			b.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+		case errors.Is(err, exceptions.ErrRecordNotFound):
+			b.resp.Write(rw, req, http.StatusExpectationFailed, exceptions.ErrRecordNotFound)
+		default:
+			b.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+		}
+
+		b.resp.Errorw("Failed fetching book.", "error", err)
+
+		return
+	}
+
+	msg := response{Message: "Book fetched successfully."}
+	b.resp.Write(rw, req, http.StatusOK, msg)
 	b.resp.Debugf(msg.Message)
 }

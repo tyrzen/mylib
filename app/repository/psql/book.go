@@ -49,3 +49,33 @@ func (b Book) Add(ctx context.Context, book models.Book) error {
 
 	return nil
 }
+
+func (b Book) GetByID(ctx context.Context, book models.Book) (models.Book, error) {
+	const SQL = `SELECT id, author_id, title, genre, rate, size, created_at 
+				 FROM books 
+				 WHERE id=$1;`
+
+	row := b.QueryRowContext(ctx, SQL, book.ID)
+
+	err := row.Scan(
+		&book.ID,
+		&book.AuthorID,
+		&book.Title,
+		&book.Genre,
+		&book.Rate,
+		&book.Size,
+		&book.CreatedAt,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, context.DeadlineExceeded):
+			return models.Book{}, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+		case errors.Is(err, sql.ErrNoRows):
+			return models.Book{}, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
+		default:
+			return models.Book{}, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+		}
+	}
+
+	return book, nil
+}

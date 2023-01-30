@@ -16,4 +16,5 @@ type ReaderLogic interface {
 
 type BookLogic interface {
 	Import(context.Context, models.Book) error
+	Fetch(context.Context, models.Book) (models.Book, error)
 }

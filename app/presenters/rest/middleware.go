@@ -34,7 +34,6 @@ func WithContextKey(key any, val any) func(http.Handler) http.Handler {
 func WithRequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		var id string
-
 		if id = req.Header.Get(xRequestID); id == "" {
 			id = uuid.New().String()
 		}
@@ -99,10 +98,8 @@ func (r responder) WithAuth(next http.Handler) http.Handler {
 func (r responder) WithRole(role string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-			val := req.Context().Value(tokenContextKey)
-
-			token, ok := val.(models.AccessToken)
-			if !ok {
+			token := retrieveToken[models.AccessToken](req)
+			if token == nil {
 				r.Write(rw, req, http.StatusUnprocessableEntity, exceptions.ErrTokenNotFound)
 				r.Errorw("Failed retrieve token from context.", "error", exceptions.ErrTokenNotFound)
 			}

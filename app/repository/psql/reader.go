@@ -72,7 +72,7 @@ func (r Reader) GetByID(ctx context.Context, reader models.Reader) (models.Reade
 		case errors.Is(err, context.DeadlineExceeded):
 			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrNoRecord, err)
+			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
 		default:
 			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
 		}
@@ -103,7 +103,7 @@ func (r Reader) GetByEmail(ctx context.Context, reader models.Reader) (models.Re
 		case errors.Is(err, context.DeadlineExceeded):
 			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrNoRecord, err)
+			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
 		default:
 			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
 		}

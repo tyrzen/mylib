@@ -11,15 +11,15 @@ type Token interface {
 	models.AccessToken | models.RefreshToken
 }
 
-func retrieveToken[T Token](req *http.Request) (token T) {
+func retrieveToken[T Token](req *http.Request) *T {
 	val := req.Context().Value(tokenContextKey)
 
 	token, ok := val.(T)
 	if ok {
-		return token
+		return &token
 	}
 
-	return
+	return nil
 }
 
 func retrieveJWT(req *http.Request) string {

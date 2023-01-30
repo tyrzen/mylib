@@ -112,8 +112,8 @@ func (r Reader) Login(rw http.ResponseWriter, req *http.Request) {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
 			r.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
-		case errors.Is(err, exceptions.ErrTokenCreating):
-			r.resp.Write(rw, req, http.StatusBadGateway, exceptions.ErrTokenCreating)
+		case errors.Is(err, exceptions.ErrTokenNotCreated):
+			r.resp.Write(rw, req, http.StatusBadGateway, exceptions.ErrTokenNotCreated)
 		case errors.Is(err, exceptions.ErrInvalidCredits):
 			r.resp.Write(rw, req, http.StatusUnauthorized, exceptions.ErrNotAuthorized)
 		default:
@@ -178,8 +178,8 @@ func (r Reader) Refresh(rw http.ResponseWriter, req *http.Request) {
 			r.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
 		case errors.Is(err, exceptions.ErrTokenNotFound):
 			r.resp.Write(rw, req, http.StatusBadRequest, exceptions.ErrTokenNotFound)
-		case errors.Is(err, exceptions.ErrTokenCreating):
-			r.resp.Write(rw, req, http.StatusBadGateway, exceptions.ErrTokenCreating)
+		case errors.Is(err, exceptions.ErrTokenNotCreated):
+			r.resp.Write(rw, req, http.StatusBadGateway, exceptions.ErrTokenNotCreated)
 		case errors.Is(err, exceptions.ErrTokenInvalid):
 			r.resp.Write(rw, req, http.StatusForbidden, exceptions.ErrTokenInvalid)
 		default:

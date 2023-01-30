@@ -56,7 +56,7 @@ func (r Reader) SignIn(ctx context.Context, creds models.Credentials) (*models.T
 
 	tokenPair, err := r.newTokenPair(ctx, reader)
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenCreating)
+		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenNotCreated)
 	}
 
 	return tokenPair, nil
@@ -92,7 +92,7 @@ func (r Reader) Refresh(ctx context.Context, token models.RefreshToken) (*models
 
 	tokenPair, err := r.newTokenPair(ctx, reader)
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenCreating)
+		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenNotCreated)
 	}
 
 	return tokenPair, nil

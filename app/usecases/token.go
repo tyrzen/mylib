@@ -16,7 +16,7 @@ import (
 func (r Reader) newTokenPair(ctx context.Context, reader models.Reader) (*models.TokenPair, error) {
 	accessToken, accessTokenVal, err := newAccessToken(reader.ID, reader.Role)
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenCreating)
+		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenNotCreated)
 	}
 	log.Println(accessTokenVal)
 	if err = r.sess.Create(ctx, accessToken); err != nil {
@@ -25,7 +25,7 @@ func (r Reader) newTokenPair(ctx context.Context, reader models.Reader) (*models
 
 	refreshToken, refreshTokenVal, err := newRefreshToken(accessToken.ID)
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenCreating)
+		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenNotCreated)
 	}
 
 	if err = r.sess.Create(ctx, refreshToken); err != nil {
