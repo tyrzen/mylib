@@ -125,7 +125,7 @@ func (r Reader) Login(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	setCookie(rw, refreshTokenKey, tokenPair.RefreshToken, tokenPair.ExpiresIn)
+	setCookie(rw, refreshTokenKey, tokenPair.RefreshToken, tokenPair.ExpiresIn, "auth")
 
 	r.resp.Write(rw, req.WithContext(ctx), http.StatusOK, tokenPair)
 	r.resp.Debugf("Reader authorized successfully.")
@@ -138,7 +138,7 @@ func (r Reader) Logout(rw http.ResponseWriter, req *http.Request) {
 
 	accessToken := retrieveToken[models.AccessToken](req)
 
-	if err := r.logic.SignOut(ctx, accessToken); err != nil {
+	if err := r.logic.SignOut(ctx, *accessToken); err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
 			r.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
@@ -157,7 +157,7 @@ func (r Reader) Logout(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	setCookie(rw, refreshTokenKey, "", -1)
+	setCookie(rw, refreshTokenKey, "", -1, "")
 
 	msg := response{Message: "Reader logout successfully."}
 	r.resp.Write(rw, req, http.StatusOK, msg)
@@ -171,7 +171,7 @@ func (r Reader) Refresh(rw http.ResponseWriter, req *http.Request) {
 
 	refreshToken := retrieveToken[models.RefreshToken](req)
 
-	tokenPair, err := r.logic.Refresh(ctx, refreshToken)
+	tokenPair, err := r.logic.Refresh(ctx, *refreshToken)
 	if err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
@@ -193,7 +193,7 @@ func (r Reader) Refresh(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	setCookie(rw, refreshTokenKey, tokenPair.RefreshToken, tokenPair.ExpiresIn)
+	setCookie(rw, refreshTokenKey, tokenPair.RefreshToken, tokenPair.ExpiresIn, "auth")
 
 	r.resp.Write(rw, req.WithContext(ctx), http.StatusOK, tokenPair)
 	r.resp.Debugf("Readers tokens refreshed successfully.")

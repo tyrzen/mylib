@@ -40,3 +40,12 @@ func (b Book) Fetch(ctx context.Context, book models.Book) (models.Book, error) 
 
 	return book, nil
 }
+
+func (b Book) FetchMany(ctx context.Context, filter models.DataFilter) ([]models.Book, error) {
+	books, err := b.repo.GetMany(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching book records: %w", err)
+	}
+
+	return books, nil
+}

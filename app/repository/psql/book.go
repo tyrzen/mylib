@@ -79,3 +79,59 @@ func (b Book) GetByID(ctx context.Context, book models.Book) (models.Book, error
 
 	return book, nil
 }
+
+func (b Book) GetMany(ctx context.Context, filter models.DataFilter) ([]models.Book, error) {
+	var books []models.Book
+
+	const SQL = `SELECT id, author_ID, title, genre, rate, size, created_at
+				 FROM books $1`
+
+	query := evaluateQuery(filter)
+
+	rows, err := b.QueryContext(ctx, SQL, query)
+	if err != nil {
+		switch {
+		case errors.Is(err, context.DeadlineExceeded):
+			return nil, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
+		default:
+			return nil, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+		}
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var book models.Book
+
+		err := rows.Scan(
+			&book.ID,
+			&book.AuthorID,
+			&book.Title,
+			&book.Genre,
+			&book.Rate,
+			&book.Size,
+			&book.CreatedAt,
+		)
+
+		if err != nil {
+			switch {
+			case errors.Is(err, context.DeadlineExceeded):
+				return nil, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+			case errors.Is(err, sql.ErrNoRows):
+				return nil, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
+			default:
+				return nil, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+			}
+		}
+
+		books = append(books, book)
+	}
+
+	if err := rows.Close(); err != nil {
+		return nil, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+	}
+
+	return books, nil
+}

@@ -3,7 +3,6 @@ package usecases
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -18,7 +17,7 @@ func (r Reader) newTokenPair(ctx context.Context, reader models.Reader) (*models
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenNotCreated)
 	}
-	log.Println(accessTokenVal)
+
 	if err = r.sess.Create(ctx, accessToken); err != nil {
 		return nil, err
 	}

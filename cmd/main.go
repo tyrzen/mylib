@@ -15,39 +15,10 @@ import (
 )
 
 func main() {
-	run()
-	/*	env.LoadVars()
-
-		alg := os.Getenv("JWT_ALG")
-		key := os.Getenv("JWT_KEY")
-
-		exp, err := time.ParseDuration(os.Getenv("JWT_ACCESS_EXP"))
-		if err != nil {
-			log.Fatalf("error parsing refresh token expirity: %v", err)
-		}
-
-		id := xid.New().String()
-
-		payload := models.AccessToken{ID: id, RefreshTokenID: "<blank>", Expiry: exp}
-
-		token, err := tokay.Make[models.AccessToken](alg, key, exp, payload)
-		log.Println(token)
-		if err != nil {
-			log.Fatalf("error making token: %v", err)
-		}
-
-		data, err := tokay.Parse[models.AccessToken](token, key)
-		if err != nil {
-			log.Fatalf("error parsing token: %v", err)
-		}
-
-		log.Printf("%T\n", data)
-		log.Printf("%+v", data)
-
-	*/
+	Run()
 }
 
-func run() {
+func Run() {
 	if err := env.LoadVars(); err != nil {
 		log.Printf("Failed to load environment variables: %+v", err)
 		return
@@ -64,7 +35,6 @@ func run() {
 	conn, err := repo.Connect()
 	if err != nil {
 		logger.Errorf("Failed connecting to repo: %+v", err)
-		return
 	}
 
 	defer func() {
@@ -95,15 +65,28 @@ func run() {
 	}()
 
 	readerRepo := repo.NewReader(conn)
+	bookRepo := repo.NewBook(conn)
 	tokenRepo := rds.NewToken(client)
+	authorRepo := repo.NewAuthor(conn)
+
+	logger.Infof("Repository layer initialized.")
 
 	readerLogic := usecases.NewReader(readerRepo, tokenRepo)
+	bookLogic := usecases.NewBook(bookRepo, authorRepo)
+
+	logger.Infof("Usecase layer initialized.")
 
 	readerREST := rest.NewReader(readerLogic, logger)
+	bookREST := rest.NewBook(bookLogic, logger)
 
-	router := rest.NewRouter(readerREST.Route)
+	logger.Infof("RESTish layer initialized.")
 
-	logger.Infof("Router successfully created.")
+	router := rest.NewRouter(
+		readerREST.Route,
+		bookREST.Route,
+	)
+
+	logger.Infof("Routes created successfully.")
 
 	handler := rest.ChainMiddlewares(router,
 		rest.WithRequestID,

@@ -20,6 +20,7 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.3 // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
+	github.com/gost/godata v0.0.0-20200707132251-5d9cf5efac7d // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/onsi/gomega v1.24.1 // indirect

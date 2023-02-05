@@ -2,7 +2,6 @@ package tokay
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -19,16 +18,11 @@ type Claims[T any] struct {
 func Parse[T any](val, key string) (data T, err error) {
 	var claims Claims[T]
 
-	token, err := jwt.ParseWithClaims(val, &claims, func(*jwt.Token) (interface{}, error) {
-		return []byte(key), nil
-	})
+	token, err := jwt.ParseWithClaims(val, &claims, func(*jwt.Token) (interface{}, error) { return []byte(key), nil })
 
 	if err != nil || !token.Valid {
 		var errV *jwt.ValidationError
 		if errors.As(err, &errV) {
-
-			log.Printf("%+v\n", errV)
-
 			switch errV.Errors {
 			case jwt.ValidationErrorExpired:
 				return data, exceptions.ErrTokenExpired

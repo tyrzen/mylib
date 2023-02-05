@@ -76,19 +76,18 @@ func (r responder) WithAuth(next http.Handler) http.Handler {
 				errors.Is(err, exceptions.ErrTokenNotFound),
 				errors.Is(err, exceptions.ErrTokenInvalidSigningMethod):
 				r.Write(rw, req, http.StatusUnauthorized, err)
-				r.Errorw("Failed validate token.",
-					"access_token", val,
-					"error", err)
 			default:
 				r.Write(rw, req, http.StatusBadRequest, err)
-				r.Errorw("Failed validate token.",
-					"access_token", val,
-					"error", exceptions.ErrUnexpected)
 			}
 
-			r.Debugw("Token validated.", "token", token)
+			r.Errorw("Failed to validate token.",
+				"access_token", val,
+				"error", err)
+
 			return
 		}
+
+		r.Debugw("Token validated.", "token", token)
 
 		next = WithContextKey(tokenContextKey, token)(next)
 		next.ServeHTTP(rw, req)

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const defaultKey = "revalid"
+const defaultTagName = "revalid"
 
 var ErrUnexpected = errors.New("unexpected error occurred")
 var ErrValidating = errors.New("validation error")
@@ -62,9 +62,9 @@ func ValidateStruct(src any) (err error) {
 	for i := 0; i < srcValue.NumField(); i++ {
 		fieldValue := srcValue.Field(i)
 		fieldName := srcValue.Type().Field(i).Name
-		tagValue := srcValue.Type().Field(i).Tag
+		tag := srcValue.Type().Field(i).Tag
 		// check presence of regex tag (.Tag.Lookup() would not work here)
-		if pattern, ok := getTagValue(tagValue, defaultKey); ok {
+		if pattern, ok := getTagValue(tag, defaultTagName); ok {
 			if fieldValue.IsZero() {
 				return fmt.Errorf("%v: %w", ErrValidating,
 					&ValidationError{
@@ -123,8 +123,7 @@ func inspectSource(src any) (*reflect.Value, error) {
 	srcValue := reflect.Indirect(reflect.ValueOf(src))
 
 	if srcType := srcValue.Kind(); srcType != reflect.Struct {
-		return nil,
-			fmt.Errorf("input value must be struct, got: %v", srcType)
+		return nil, fmt.Errorf("input value must be struct, got: %v", srcType)
 	}
 
 	return &srcValue, err

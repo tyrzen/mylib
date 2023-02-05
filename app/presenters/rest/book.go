@@ -28,6 +28,7 @@ func (b Book) Route(router chi.Router) {
 		Route("/books", func(router chi.Router) {
 			router.Post("/", b.Create)
 			router.Get("/{id}", b.Find)
+			router.Get("/", b.FindMany)
 		})
 }
 
@@ -96,4 +97,35 @@ func (b Book) Find(rw http.ResponseWriter, req *http.Request) {
 	msg := response{Message: "Book fetched successfully."}
 	b.resp.Write(rw, req, http.StatusOK, msg)
 	b.resp.Debugf(msg.Message)
+}
+
+func (b Book) FindMany(rw http.ResponseWriter, req *http.Request) {
+	var filter models.DataFilter
+	if err := filter.ParseURL(req.URL.String(), models.Book{}); err != nil {
+		b.resp.Write(rw, req, http.StatusBadRequest, ErrInvalidQuery)
+		b.resp.Errorw("Failed parsing query from request URL.", "error", err)
+
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	books, err := b.logic.FetchMany(ctx, filter)
+	if err != nil {
+		switch {
+		case errors.Is(err, exceptions.ErrDeadline):
+			b.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+			// TODO: Add cases.
+		default:
+			b.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+		}
+
+		b.resp.Errorw("Failed fetching books.", "error", err)
+
+		return
+	}
+
+	// TODO: Make pagination
+	_ = books
 }

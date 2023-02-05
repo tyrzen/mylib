@@ -10,24 +10,24 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Session struct {
+type Token struct {
 	client *redis.Client
 }
 
-func NewToken(client *redis.Client) Session {
-	return Session{client}
+func NewToken(client *redis.Client) *Token {
+	return &Token{client}
 }
 
-func (s Session) Create(ctx context.Context, token models.Token) error {
-	if err := s.client.Set(ctx, token.ID, token.UID, token.Expiry).Err(); err != nil {
+func (t Token) Create(ctx context.Context, token models.Token) error {
+	if err := t.client.Set(ctx, token.ID, token.UID, token.Expiry).Err(); err != nil {
 		return fmt.Errorf("recording session: %w", err)
 	}
 
 	return nil
 }
 
-func (s Session) Find(ctx context.Context, token models.Token) (models.Token, error) {
-	uid, err := s.client.Get(ctx, token.ID).Result()
+func (t Token) Find(ctx context.Context, token models.Token) (models.Token, error) {
+	uid, err := t.client.Get(ctx, token.ID).Result()
 	if errors.Is(err, redis.Nil) {
 		return models.Token{}, fmt.Errorf("nil record: %w", exceptions.ErrTokenNotFound)
 	}
@@ -41,8 +41,8 @@ func (s Session) Find(ctx context.Context, token models.Token) (models.Token, er
 	return token, nil
 }
 
-func (s Session) Destroy(ctx context.Context, token models.Token) error {
-	_, err := s.client.Del(ctx, token.ID).Result()
+func (t Token) Destroy(ctx context.Context, token models.Token) error {
+	_, err := t.client.Del(ctx, token.ID).Result()
 
 	if errors.Is(err, redis.Nil) {
 		return fmt.Errorf("nil record: %w", exceptions.ErrTokenNotFound)
