@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/delveper/mylib/app/exceptions"
 	"github.com/delveper/mylib/app/models"
@@ -94,29 +96,41 @@ func (b Book) Find(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	msg := response{Message: "Book fetched successfully."}
-	b.resp.Write(rw, req, http.StatusOK, msg)
-	b.resp.Debugf(msg.Message)
+	b.resp.Write(rw, req, http.StatusOK, book)
+	b.resp.Debugf("Book fetched successfully.")
 }
 
+// FindMany handles bulk fetching books by given OData query.
+// If $top number not specified maxOnPage will be used.
+// In case number of requested books is more than maxOnPage
+// then nextLink will be rendered in response.
 func (b Book) FindMany(rw http.ResponseWriter, req *http.Request) {
-	var filter models.DataFilter
-	if err := filter.ParseURL(req.URL.String(), models.Book{}); err != nil {
+	filter, err := models.NewDataFilter[models.Book](req.URL)
+	if err != nil {
 		b.resp.Write(rw, req, http.StatusBadRequest, ErrInvalidQuery)
 		b.resp.Errorw("Failed parsing query from request URL.", "error", err)
 
 		return
 	}
 
+	maxOnPage, err := strconv.Atoi(os.Getenv("BOOKS_MAX_ON_PAGE"))
+	if err != nil {
+	}
+
+	delta := filter.Top - maxOnPage
+	filter.Top = maxOnPage
+
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 
-	books, err := b.logic.FetchMany(ctx, filter)
+	books, err := b.logic.FetchMany(ctx, *filter)
 	if err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
 			b.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
-			// TODO: Add cases.
+			// not sure about that.
+		case errors.Is(err, exceptions.ErrRecordNotFound):
+			b.resp.Write(rw, req, http.StatusBadRequest, exceptions.ErrRecordNotFound)
 		default:
 			b.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}
@@ -126,6 +140,22 @@ func (b Book) FindMany(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// TODO: Make pagination
-	_ = books
+	var nextLink string
+	if delta > 0 && len(books) == maxOnPage {
+		filter.Skip = maxOnPage
+		filter.Top = delta
+		filter.UpdateURL()
+		nextLink = filter.URL.String()
+	}
+
+	resp := struct {
+		Books    []models.Book `json:"books"`
+		NextLink string        `json:"next_link,omitempty"`
+	}{
+		Books:    books,
+		NextLink: nextLink,
+	}
+
+	b.resp.Write(rw, req, http.StatusOK, resp)
+	b.resp.Debugf("Books fetched successfully.")
 }

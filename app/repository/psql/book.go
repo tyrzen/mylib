@@ -18,8 +18,8 @@ func NewBook(db *sql.DB) *Book {
 }
 
 func (b Book) Add(ctx context.Context, book models.Book) error {
-	const SQL = `INSERT INTO books (id, author_id, title, genre, rate, size, created_at) 
-					VALUES (GEN_RANDOM_UUID(), $1, $2, $3, $4, $5, NOW());`
+	const SQL = `INSERT INTO books (id, author_id, title, genre, rate, size, year) 
+					VALUES (GEN_RANDOM_UUID(), $1, $2, $3, $4, $5, $6);`
 
 	_, err := b.ExecContext(ctx, SQL,
 		book.AuthorID, // $1
@@ -27,6 +27,7 @@ func (b Book) Add(ctx context.Context, book models.Book) error {
 		book.Genre,    // $3
 		book.Rate,     // $4
 		book.Size,     // $5
+		book.Year,     // $6
 	)
 
 	if err != nil {
@@ -50,8 +51,31 @@ func (b Book) Add(ctx context.Context, book models.Book) error {
 	return nil
 }
 
+func (b Book) Count(ctx context.Context, filter models.DataFilter) (int, error) {
+	var n int
+	const SQL = `SELECT COUNT(*) FROM books $1`
+
+	query := evaluateQuery(filter)
+
+	row := b.QueryRowContext(ctx, SQL, query)
+
+	err := row.Scan(&n)
+	if err != nil {
+		switch {
+		case errors.Is(err, context.DeadlineExceeded):
+			return 0, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+		case errors.Is(err, sql.ErrNoRows):
+			return 0, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
+		default:
+			return 0, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+		}
+	}
+
+	return n, nil
+}
+
 func (b Book) GetByID(ctx context.Context, book models.Book) (models.Book, error) {
-	const SQL = `SELECT id, author_id, title, genre, rate, size, created_at 
+	const SQL = `SELECT id, author_id, title, genre, rate, size, year
 				 FROM books 
 				 WHERE id=$1;`
 
@@ -64,7 +88,7 @@ func (b Book) GetByID(ctx context.Context, book models.Book) (models.Book, error
 		&book.Genre,
 		&book.Rate,
 		&book.Size,
-		&book.CreatedAt,
+		&book.Year,
 	)
 	if err != nil {
 		switch {
@@ -83,7 +107,7 @@ func (b Book) GetByID(ctx context.Context, book models.Book) (models.Book, error
 func (b Book) GetMany(ctx context.Context, filter models.DataFilter) ([]models.Book, error) {
 	var books []models.Book
 
-	const SQL = `SELECT id, author_ID, title, genre, rate, size, created_at
+	const SQL = `SELECT id, author_ID, title, genre, rate, size, year
 				 FROM books $1`
 
 	query := evaluateQuery(filter)
@@ -112,7 +136,7 @@ func (b Book) GetMany(ctx context.Context, filter models.DataFilter) ([]models.B
 			&book.Genre,
 			&book.Rate,
 			&book.Size,
-			&book.CreatedAt,
+			&book.Year,
 		)
 
 		if err != nil {

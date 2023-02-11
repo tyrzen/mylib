@@ -24,6 +24,7 @@ type AuthorRepository interface {
 
 type BookRepository interface {
 	Add(context.Context, models.Book) error
+	Count(context.Context, models.DataFilter) (int, error)
 	GetByID(context.Context, models.Book) (models.Book, error)
 	GetMany(context.Context, models.DataFilter) ([]models.Book, error)
 }

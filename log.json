@@ -1,16 +1,13 @@
-{"level":"INFO","time":"2023-01-29T11:31:04.769+0200","message":"Logger set up with level: debug"}
-{"level":"INFO","time":"2023-01-29T11:31:04.814+0200","message":"Connection to repo established."}
-{"level":"INFO","time":"2023-01-29T11:31:04.827+0200","message":"goose: no migrations to run. current version: 5\n"}
-{"level":"INFO","time":"2023-01-29T11:31:04.835+0200","message":"Router successfully created."}
-{"level":"INFO","time":"2023-01-29T11:31:04.835+0200","message":"Pre-middleware set up."}
-{"level":"DEBUG","time":"2023-01-29T11:31:09.919+0200","message":"Request:","id":"07c3ba77-68b2-44d4-b719-759bcf73c207","method":"POST","uri":"/auth/login","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:49588"}
-{"level":"DEBUG","time":"2023-01-29T11:31:10.040+0200","message":"Reader authorized successfully."}
-{"level":"DEBUG","time":"2023-01-29T11:31:20.511+0200","message":"Request:","id":"38561332-b518-4b1d-b796-5bfd3739ef4b","method":"GET","uri":"/auth/logout","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:49588"}
-{"level":"DEBUG","time":"2023-01-29T11:31:27.341+0200","message":"Request:","id":"c6016e5b-31b2-455b-8f8b-a0d13d5cbc20","method":"POST","uri":"/auth/logout","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:49588"}
-{"level":"ERROR","time":"2023-01-29T11:31:27.342+0200","message":"Failed validate token.","access_token":"","error":"token invalid: token contains an invalid number of segments"}
-{"level":"DEBUG","time":"2023-01-29T11:31:27.342+0200","message":"Token validated.","token":{"ID":"","RefreshTokenID":"","Role":"","Expiry":0}}
-{"level":"DEBUG","time":"2023-01-29T11:38:46.121+0200","message":"Request:","id":"25b3cfd0-4c81-48fa-a623-aed680085cf2","method":"POST","uri":"/auth/logout","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:52558"}
-{"level":"ERROR","time":"2023-01-29T11:38:46.122+0200","message":"Failed validate token.","access_token":"","error":"token invalid: token contains an invalid number of segments"}
-{"level":"DEBUG","time":"2023-01-29T11:38:46.123+0200","message":"Token validated.","token":{"ID":"","RefreshTokenID":"","Role":"","Expiry":0}}
-{"level":"DEBUG","time":"2023-01-29T11:39:17.817+0200","message":"Request:","id":"dd401ac7-becc-406e-9cd3-c1b1a8873d2e","method":"POST","uri":"/auth/logout","user-agent":"PostmanRuntime/7.30.0","remote":"127.0.0.1:52558"}
-{"level":"DEBUG","time":"2023-01-29T11:39:17.824+0200","message":"Reader logout went successfully."}
+{"level":"INFO","time":"2023-02-11T05:23:39.054+0200","message":"Logger set up with level: debug"}
+{"level":"INFO","time":"2023-02-11T05:23:39.064+0200","message":"Connection to repo established."}
+{"level":"INFO","time":"2023-02-11T05:23:39.122+0200","message":"OK    00001_readers.sql"}
+{"level":"INFO","time":"2023-02-11T05:23:39.136+0200","message":"OK    00002_authors.sql"}
+{"level":"INFO","time":"2023-02-11T05:23:39.159+0200","message":"OK    00003_books.sql"}
+{"level":"INFO","time":"2023-02-11T05:23:39.178+0200","message":"OK    00004_favorites.sql"}
+{"level":"INFO","time":"2023-02-11T05:23:39.191+0200","message":"OK    00005_wishlists.sql"}
+{"level":"INFO","time":"2023-02-11T05:23:39.193+0200","message":"goose: no migrations to run. current version: 5\n"}
+{"level":"INFO","time":"2023-02-11T05:23:39.195+0200","message":"Repository layer initialized."}
+{"level":"INFO","time":"2023-02-11T05:23:39.195+0200","message":"Usecase layer initialized."}
+{"level":"INFO","time":"2023-02-11T05:23:39.196+0200","message":"RESTish layer initialized."}
+{"level":"INFO","time":"2023-02-11T05:23:39.197+0200","message":"Routes created successfully."}
+{"level":"INFO","time":"2023-02-11T05:23:39.197+0200","message":"Pre-middleware set up."}

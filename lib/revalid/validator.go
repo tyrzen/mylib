@@ -42,7 +42,7 @@ func (vErr *ValidationError) Error() string {
 // according to given regex tag
 func ValidateStruct(src any) (err error) {
 	// check if src is a struct
-	srcValue, err := inspectSource(src)
+	srcValue, err := isStructValue(src)
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,8 @@ func getTagValue(tag reflect.StructTag, key string) (string, bool) {
 	return "", false
 }
 
-func inspectSource(src any) (*reflect.Value, error) {
+// isStructValue check if validation object struct or not.
+func isStructValue(src any) (*reflect.Value, error) {
 	var err error
 	defer func() {
 		if recover() != nil {

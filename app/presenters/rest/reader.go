@@ -23,15 +23,16 @@ func NewReader(logic ReaderLogic, logger models.Logger) Reader {
 }
 
 func (r Reader) Route(router chi.Router) {
+	router.Route("/readers", func(router chi.Router) {
+		router.Post("/", r.Create)
+	})
+
 	router.Route("/auth", func(router chi.Router) {
 		router.Post("/login", r.Login)
 		router.With(r.resp.WithAuth).Post("/token", r.Refresh)
 		router.With(r.resp.WithAuth).Post("/logout", r.Logout)
 	})
 
-	router.Route("/readers", func(router chi.Router) {
-		router.Post("/", r.Create)
-	})
 }
 
 // Create creates new models.Reader.

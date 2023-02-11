@@ -20,14 +20,14 @@ func NewReader(db *sql.DB) *Reader {
 // Add adds models.Reader entity.
 func (r Reader) Add(ctx context.Context, reader models.Reader) error {
 	const SQL = `INSERT INTO readers (id, first_name, last_name, email, password, role, created_at)
-					VALUES(GEN_RANDOM_UUID(), $1, $2, $3, $4, NOW());`
+					VALUES(GEN_RANDOM_UUID(), $1, $2, $3, $4, $5, NOW());`
 
 	_, err := r.ExecContext(ctx, SQL,
 		reader.FirstName, // $1
 		reader.LastName,  // $2
 		reader.Email,     // $3
-		reader.Role,      // $4
-		reader.Password,  // $5
+		reader.Password,  // $4
+		reader.Role,      // $5
 	)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {

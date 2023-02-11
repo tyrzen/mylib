@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE table favorites
+CREATE table wishlists
 (
     id         UUID PRIMARY KEY            DEFAULT GEN_RANDOM_UUID(),
     reader_id  UUID NOT NULL REFERENCES readers (id) ON DELETE CASCADE,
@@ -11,5 +11,5 @@ CREATE table favorites
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE favorites;
+DROP TABLE wishlists;
 -- +goose StatementEnd

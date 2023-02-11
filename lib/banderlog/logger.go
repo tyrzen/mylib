@@ -1,4 +1,5 @@
-// Package banderlog is wrapper around zap logger.
+// Package banderlog is wrapper around zap logger
+// that initialize stdout and JSON file logging.
 package banderlog
 
 import (

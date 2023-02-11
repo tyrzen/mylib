@@ -8,10 +8,10 @@ run:
 	go run ./cmd/main.go
 
 # Certificate
-certificate:
-	openssl genrsa -out key.pem
-	openssl req -new -key key.pem -out cert.pem
-	openssl req -x509 -days 365 -key key.pem -in cert.pem -out certificate.pem
+#certificate:
+#	openssl genrsa -out key.pem
+#	openssl req -new -key key.pem -out cert.pem
+#	openssl req -x509 -days 365 -key key.pem -in cert.pem -out certificate.pem
 
 # Migrations
 DB_DSN := "host=$(DB_HOST) port=$(DB_EXPOSE_PORT) user=$(DB_USER) password=$(DB_PASSWORD) dbname=$(DB_NAME) sslmode=$(DB_SSL_MODE)"

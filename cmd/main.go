@@ -7,7 +7,7 @@ import (
 	"github.com/delveper/mylib/app/models"
 	"github.com/delveper/mylib/app/presenters/rest"
 	repo "github.com/delveper/mylib/app/repository/psql"
-	"github.com/delveper/mylib/app/repository/rds"
+	sess "github.com/delveper/mylib/app/repository/rds"
 	"github.com/delveper/mylib/app/usecases"
 	"github.com/delveper/mylib/lib/banderlog"
 	"github.com/delveper/mylib/lib/env"
@@ -32,13 +32,13 @@ func Run() {
 	}()
 	logger.Infof("Logger set up with level: %s", logger.Level())
 
-	conn, err := repo.Connect()
+	repoConn, err := repo.Connect()
 	if err != nil {
 		logger.Errorf("Failed connecting to repo: %+v", err)
 	}
 
 	defer func() {
-		if err := conn.Close(); err != nil {
+		if err := repoConn.Close(); err != nil {
 			logger.Warnf("Failed closing repo connection: %+v", err)
 		}
 	}()
@@ -47,27 +47,27 @@ func Run() {
 	migration := mig.New()
 	migration.SetLogger(logger)
 
-	if err := migration.Run(conn); err != nil {
+	if err := migration.Run(repoConn); err != nil {
 		logger.Errorf("Failed making migrations: %+v", err)
 		return
 	}
 
-	client, err := rds.Connect()
+	sessConn, err := sess.Connect()
 	if err != nil {
 		logger.Errorf("Failed connecting to session repo: %+v", err)
 		return
 	}
 
 	defer func() {
-		if err := client.Close(); err != nil {
+		if err := sessConn.Close(); err != nil {
 			logger.Warnf("Failed closing session repo connection: %+v", err)
 		}
 	}()
 
-	readerRepo := repo.NewReader(conn)
-	bookRepo := repo.NewBook(conn)
-	tokenRepo := rds.NewToken(client)
-	authorRepo := repo.NewAuthor(conn)
+	readerRepo := repo.NewReader(repoConn)
+	bookRepo := repo.NewBook(repoConn)
+	tokenRepo := sess.NewToken(sessConn)
+	authorRepo := repo.NewAuthor(repoConn)
 
 	logger.Infof("Repository layer initialized.")
 
@@ -86,14 +86,14 @@ func Run() {
 		bookREST.Route,
 	)
 
-	logger.Infof("Routes created successfully.")
+	logger.Infof("Routes registered successfully.")
 
 	handler := rest.ChainMiddlewares(router,
 		rest.WithRequestID,
 		rest.WithLogRequest(logger),
 	)
 
-	logger.Infof("Pre-middleware set up.")
+	logger.Infof("Server middleware set up.")
 
 	srv, err := rest.NewServer(handler)
 	if err != nil {
