@@ -51,29 +51,6 @@ func (b Book) Add(ctx context.Context, book models.Book) error {
 	return nil
 }
 
-func (b Book) Count(ctx context.Context, filter models.DataFilter) (int, error) {
-	var n int
-	const SQL = `SELECT COUNT(*) FROM books $1`
-
-	query := evaluateQuery(filter)
-
-	row := b.QueryRowContext(ctx, SQL, query)
-
-	err := row.Scan(&n)
-	if err != nil {
-		switch {
-		case errors.Is(err, context.DeadlineExceeded):
-			return 0, fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
-		case errors.Is(err, sql.ErrNoRows):
-			return 0, fmt.Errorf("%w: %w", exceptions.ErrRecordNotFound, err)
-		default:
-			return 0, fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
-		}
-	}
-
-	return n, nil
-}
-
 func (b Book) GetByID(ctx context.Context, book models.Book) (models.Book, error) {
 	const SQL = `SELECT id, author_id, title, genre, rate, size, year
 				 FROM books 

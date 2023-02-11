@@ -16,7 +16,7 @@ services:
       - repo_data:/var/lib/postgresql/data
     networks:
       - mylib
-  # TOKEN REPO
+  # SESSION REPO
   session:
     image: redis:alpine3.17
     container_name: ${APP_NAME}_session
