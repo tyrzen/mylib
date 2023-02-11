@@ -32,20 +32,20 @@ func (b Book) Add(ctx context.Context, book models.Book) error {
 
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
-			return fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+			return fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
 		}
 
 		var pgxErr *pgconn.PgError
 		if errors.As(err, &pgxErr) {
 			switch pgxErr.ConstraintName {
 			case "books_title_key":
-				return fmt.Errorf("%w: %v", exceptions.ErrDuplicateTitle, err)
+				return fmt.Errorf("%w: %w", exceptions.ErrDuplicateTitle, err)
 			case "books_pkey":
-				return fmt.Errorf("%w: %v", exceptions.ErrDuplicateID, err)
+				return fmt.Errorf("%w: %w", exceptions.ErrDuplicateID, err)
 			}
 		}
 
-		return fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+		return fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
 	}
 
 	return nil
@@ -63,11 +63,11 @@ func (b Book) Count(ctx context.Context, filter models.DataFilter) (int, error) 
 	if err != nil {
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):
-			return 0, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+			return 0, fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
 		case errors.Is(err, sql.ErrNoRows):
-			return 0, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
+			return 0, fmt.Errorf("%w: %w", exceptions.ErrRecordNotFound, err)
 		default:
-			return 0, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+			return 0, fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
 		}
 	}
 
@@ -93,11 +93,11 @@ func (b Book) GetByID(ctx context.Context, book models.Book) (models.Book, error
 	if err != nil {
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):
-			return models.Book{}, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+			return models.Book{}, fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Book{}, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
+			return models.Book{}, fmt.Errorf("%w: %w", exceptions.ErrRecordNotFound, err)
 		default:
-			return models.Book{}, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+			return models.Book{}, fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
 		}
 	}
 
@@ -116,11 +116,11 @@ func (b Book) GetMany(ctx context.Context, filter models.DataFilter) ([]models.B
 	if err != nil {
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):
-			return nil, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+			return nil, fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
+			return nil, fmt.Errorf("%w: %w", exceptions.ErrRecordNotFound, err)
 		default:
-			return nil, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+			return nil, fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
 		}
 	}
 
@@ -142,11 +142,11 @@ func (b Book) GetMany(ctx context.Context, filter models.DataFilter) ([]models.B
 		if err != nil {
 			switch {
 			case errors.Is(err, context.DeadlineExceeded):
-				return nil, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+				return nil, fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
 			case errors.Is(err, sql.ErrNoRows):
-				return nil, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
+				return nil, fmt.Errorf("%w: %w", exceptions.ErrRecordNotFound, err)
 			default:
-				return nil, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+				return nil, fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
 			}
 		}
 
@@ -154,8 +154,74 @@ func (b Book) GetMany(ctx context.Context, filter models.DataFilter) ([]models.B
 	}
 
 	if err := rows.Close(); err != nil {
-		return nil, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+		return nil, fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
 	}
 
 	return books, nil
+}
+
+func (b Book) AddToFavorites(ctx context.Context, reader models.Reader, book models.Book) error {
+	const SQL = `INSERT INTO favorites (reader_id, book_id, created_at) 
+					VALUES ($1, $2, NOW());`
+
+	_, err := b.ExecContext(ctx, SQL,
+		reader.ID, // $1
+		book.ID,   // $2
+	)
+
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
+		}
+
+		var pgxErr *pgconn.PgError
+		if errors.As(err, &pgxErr) {
+			switch pgxErr.ConstraintName {
+			case "favorites_reader_id_book_id_key":
+				return fmt.Errorf("%w: %w", exceptions.ErrRecordExists, err)
+			case "favorites_book_id_fkey":
+				return fmt.Errorf("%w: %w", exceptions.ErrBookNotFound, err)
+			case "favorites_reader_id_fkey":
+				return fmt.Errorf("%w: %w", exceptions.ErrReaderNotFound, err)
+			default:
+			}
+		}
+
+		return fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
+	}
+
+	return nil
+}
+
+func (b Book) AddToWishlist(ctx context.Context, reader models.Reader, book models.Book) error {
+	const SQL = `INSERT INTO wishlist (reader_id, book_id, created_at) 
+					VALUES ($1, $2, NOW());`
+
+	_, err := b.ExecContext(ctx, SQL,
+		reader.ID, // $1
+		book.ID,   // $2
+	)
+
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
+		}
+
+		var pgxErr *pgconn.PgError
+		if errors.As(err, &pgxErr) {
+			switch pgxErr.ConstraintName {
+			case "wishlist_reader_id_book_id_key":
+				return fmt.Errorf("%w: %w", exceptions.ErrRecordExists, err)
+			case "wishlist_book_id_fkey":
+				return fmt.Errorf("%w: %w", exceptions.ErrBookNotFound, err)
+			case "wishlist_reader_id_fkey":
+				return fmt.Errorf("%w: %w", exceptions.ErrReaderNotFound, err)
+			default:
+			}
+		}
+
+		return fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
+	}
+
+	return nil
 }

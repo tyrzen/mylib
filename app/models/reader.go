@@ -22,7 +22,7 @@ type Reader struct {
 
 func (r *Reader) OK() error {
 	if err := revalid.ValidateStruct(r); err != nil {
-		return fmt.Errorf("%w: %v", exceptions.ErrValidation, err)
+		return fmt.Errorf("%w: %w", exceptions.ErrValidation, err)
 	}
 
 	return nil
@@ -36,7 +36,7 @@ func (r *Reader) Normalize() {
 
 func (r *Reader) HashPassword() (err error) {
 	if r.Password, err = hash.Make(r.Password); err != nil {
-		return fmt.Errorf("%w: %v", exceptions.ErrHashing, err)
+		return fmt.Errorf("%w: %w", exceptions.ErrHashing, err)
 	}
 
 	return nil
@@ -44,7 +44,7 @@ func (r *Reader) HashPassword() (err error) {
 
 func (r *Reader) CheckPassword(password string) error {
 	if err := hash.Verify(password, r.Password); err != nil {
-		return fmt.Errorf("%w: %v", exceptions.ErrComparingHash, err)
+		return fmt.Errorf("%w: %w", exceptions.ErrComparingHash, err)
 	}
 
 	return nil

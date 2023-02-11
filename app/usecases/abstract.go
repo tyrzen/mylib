@@ -27,4 +27,6 @@ type BookRepository interface {
 	Count(context.Context, models.DataFilter) (int, error)
 	GetByID(context.Context, models.Book) (models.Book, error)
 	GetMany(context.Context, models.DataFilter) ([]models.Book, error)
+	AddToFavorites(context.Context, models.Reader, models.Book) error
+	AddToWishlist(context.Context, models.Reader, models.Book) error
 }

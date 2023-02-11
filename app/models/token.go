@@ -9,7 +9,7 @@ type Token struct {
 }
 
 type AccessToken struct {
-	ID             string
+	ReaderID       string
 	RefreshTokenID string
 	Role           string
 	Expiry         time.Duration

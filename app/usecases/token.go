@@ -9,11 +9,19 @@ import (
 	"github.com/delveper/mylib/app/exceptions"
 	"github.com/delveper/mylib/app/models"
 	"github.com/delveper/mylib/lib/tokay"
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 )
 
 func (r Reader) newTokenPair(ctx context.Context, reader models.Reader) (*models.TokenPair, error) {
-	accessToken, accessTokenVal, err := newAccessToken(reader.ID, reader.Role)
+	refreshToken, refreshTokenVal, err := newRefreshToken(reader.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenNotCreated)
+	}
+	if err = r.sess.Create(ctx, refreshToken); err != nil {
+		return nil, err
+	}
+
+	accessToken, accessTokenVal, err := newAccessToken(reader.ID, refreshToken.ID, reader.Role)
 	if err != nil {
 		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenNotCreated)
 	}
@@ -21,16 +29,6 @@ func (r Reader) newTokenPair(ctx context.Context, reader models.Reader) (*models
 	if err = r.sess.Create(ctx, accessToken); err != nil {
 		return nil, err
 	}
-
-	refreshToken, refreshTokenVal, err := newRefreshToken(accessToken.ID)
-	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, exceptions.ErrTokenNotCreated)
-	}
-
-	if err = r.sess.Create(ctx, refreshToken); err != nil {
-		return nil, err
-	}
-
 	return &models.TokenPair{
 		AccessToken:  accessTokenVal,
 		TokenType:    "Bearer",
@@ -39,9 +37,7 @@ func (r Reader) newTokenPair(ctx context.Context, reader models.Reader) (*models
 	}, nil
 }
 
-func newAccessToken(uid, role string) (token models.Token, val string, err error) {
-	id := xid.New().String()
-
+func newAccessToken(readerID, refreshTokenID, role string) (token models.Token, val string, err error) {
 	alg := os.Getenv("JWT_ALG")
 	key := os.Getenv("JWT_KEY")
 
@@ -52,8 +48,8 @@ func newAccessToken(uid, role string) (token models.Token, val string, err error
 	}
 
 	data := models.AccessToken{
-		ID:             id,
-		RefreshTokenID: uid,
+		ReaderID:       readerID,
+		RefreshTokenID: refreshTokenID,
 		Role:           role,
 		Expiry:         exp,
 	}
@@ -64,8 +60,8 @@ func newAccessToken(uid, role string) (token models.Token, val string, err error
 	}
 
 	token = models.Token{
-		ID:     id,
-		UID:    uid,
+		ID:     readerID,
+		UID:    refreshTokenID,
 		Expiry: exp,
 	}
 
@@ -73,7 +69,7 @@ func newAccessToken(uid, role string) (token models.Token, val string, err error
 }
 
 func newRefreshToken(uid string) (token models.Token, val string, err error) {
-	id := xid.New().String()
+	id := uuid.New().String()
 
 	alg := os.Getenv("JWT_ALG")
 	key := os.Getenv("JWT_KEY")

@@ -31,20 +31,20 @@ func (r Reader) Add(ctx context.Context, reader models.Reader) error {
 	)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
-			return fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+			return fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
 		}
 
 		var pgxErr *pgconn.PgError
 		if errors.As(err, &pgxErr) {
 			switch pgxErr.ConstraintName {
 			case "readers_email_key":
-				return fmt.Errorf("%w: %v", exceptions.ErrDuplicateEmail, err)
+				return fmt.Errorf("%w: %w", exceptions.ErrDuplicateEmail, err)
 			case "readers_pkey":
-				return fmt.Errorf("%w: %v", exceptions.ErrDuplicateID, err)
+				return fmt.Errorf("%w: %w", exceptions.ErrDuplicateID, err)
 			}
 		}
 
-		return fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+		return fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
 	}
 
 	return nil
@@ -70,11 +70,11 @@ func (r Reader) GetByID(ctx context.Context, reader models.Reader) (models.Reade
 	if err != nil {
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):
-			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+			return models.Reader{}, fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
+			return models.Reader{}, fmt.Errorf("%w: %w", exceptions.ErrRecordNotFound, err)
 		default:
-			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+			return models.Reader{}, fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
 		}
 	}
 
@@ -101,11 +101,11 @@ func (r Reader) GetByEmail(ctx context.Context, reader models.Reader) (models.Re
 	if err != nil {
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):
-			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+			return models.Reader{}, fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
+			return models.Reader{}, fmt.Errorf("%w: %w", exceptions.ErrRecordNotFound, err)
 		default:
-			return models.Reader{}, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+			return models.Reader{}, fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
 		}
 	}
 

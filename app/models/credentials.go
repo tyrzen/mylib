@@ -19,7 +19,7 @@ func (c *Credentials) Normalize() {
 
 func (c *Credentials) OK() error {
 	if err := revalid.ValidateStruct(c); err != nil {
-		return fmt.Errorf("%w: %v", exceptions.ErrValidation, err)
+		return fmt.Errorf("%w: %w", exceptions.ErrValidation, err)
 	}
 
 	return nil

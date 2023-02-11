@@ -27,12 +27,12 @@ func Parse[T any](val, key string) (data T, err error) {
 			case jwt.ValidationErrorExpired:
 				return data, exceptions.ErrTokenExpired
 			case jwt.ValidationErrorSignatureInvalid:
-				return data, fmt.Errorf("%w: %v", exceptions.ErrTokenInvalidSigningMethod, err)
+				return data, fmt.Errorf("%w: %w", exceptions.ErrTokenInvalidSigningMethod, err)
 			default:
 			}
 		}
 
-		return data, fmt.Errorf("%w: %v", exceptions.ErrTokenInvalid, err)
+		return data, fmt.Errorf("%w: %w", exceptions.ErrTokenInvalid, err)
 	}
 
 	data = claims.MetaData

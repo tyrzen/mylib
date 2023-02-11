@@ -22,7 +22,7 @@ func NewReader(repo ReaderRepository, sess TokenRepository) Reader {
 }
 
 func (r Reader) Auth(ctx context.Context, token models.AccessToken) error {
-	accessToken := models.Token{ID: token.ID, UID: token.RefreshTokenID}
+	accessToken := models.Token{ID: token.ReaderID, UID: token.RefreshTokenID}
 
 	savedToken, err := r.sess.Find(ctx, accessToken)
 	if err != nil {
@@ -63,7 +63,7 @@ func (r Reader) SignIn(ctx context.Context, creds models.Credentials) (*models.T
 }
 
 func (r Reader) SignOut(ctx context.Context, token models.AccessToken) error {
-	accessToken := models.Token{ID: token.ID, UID: token.RefreshTokenID}
+	accessToken := models.Token{ID: token.ReaderID, UID: token.RefreshTokenID}
 
 	if err := r.sess.Destroy(ctx, accessToken); err != nil {
 		return fmt.Errorf("error destroying access token: %w", err)

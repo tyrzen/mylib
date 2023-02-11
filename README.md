@@ -1,6 +1,7 @@
 # mylib
 
 ## Structure
+
 ```
 mylib/
 ├── app/
@@ -36,5 +37,9 @@ mylib/
 ├── README.md
 └── .env 
 ```
+
 # Helpful materials
+
 * [HTTP status codes with kittens](https://httpcats.com/)
+* [Letsencrypt](https://letsencrypt.org/) gives production ready certificates for free.
+

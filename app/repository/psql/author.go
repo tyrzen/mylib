@@ -32,11 +32,11 @@ func (a Author) GetByID(ctx context.Context, author models.Author) (models.Autho
 	if err != nil {
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):
-			return models.Author{}, fmt.Errorf("%w: %v", exceptions.ErrDeadline, err)
+			return models.Author{}, fmt.Errorf("%w: %w", exceptions.ErrDeadline, err)
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Author{}, fmt.Errorf("%w: %v", exceptions.ErrRecordNotFound, err)
+			return models.Author{}, fmt.Errorf("%w: %w", exceptions.ErrRecordNotFound, err)
 		default:
-			return models.Author{}, fmt.Errorf("%w: %v", exceptions.ErrUnexpected, err)
+			return models.Author{}, fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
 		}
 	}
 

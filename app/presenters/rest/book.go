@@ -26,11 +26,17 @@ func NewBook(logic BookLogic, logger models.Logger) Book {
 }
 
 func (b Book) Route(router chi.Router) {
-	router.With(b.resp.WithAuth, b.resp.WithRole("admin")).
+	router.With(b.resp.WithAuth).
 		Route("/books", func(router chi.Router) {
-			router.Post("/", b.Create)
 			router.Get("/{id}", b.Find)
 			router.Get("/", b.FindMany)
+			router.With(b.resp.WithRole("admin")).Post("/", b.Create)
+		})
+
+	router.With(b.resp.WithAuth).
+		Route("/readers/me", func(router chi.Router) {
+			router.Post("/favorites", b.AddToFavorites)
+			router.Post("/wishlist", b.AddToWishlist)
 		})
 }
 
@@ -158,4 +164,94 @@ func (b Book) FindMany(rw http.ResponseWriter, req *http.Request) {
 
 	b.resp.Write(rw, req, http.StatusOK, resp)
 	b.resp.Debugf("Books fetched successfully.")
+}
+
+func (b Book) AddToFavorites(rw http.ResponseWriter, req *http.Request) {
+	var book models.Book
+	if err := b.resp.DecodeBody(req, &book); err != nil {
+		b.resp.Write(rw, req, http.StatusBadRequest, ErrDecoding)
+		b.resp.Errorw("Failed decoding book data from request.", "error", err)
+
+		return
+	}
+
+	token := retrieveToken[models.AccessToken](req)
+	reader := models.Reader{ID: token.ReaderID}
+
+	if book.ID == "" || reader.ID == "" {
+		msg := response{Message: "ReaderID and BookID  are required fields."}
+		b.resp.Write(rw, req, http.StatusGatewayTimeout, msg)
+		b.resp.Debugf(msg.Message)
+
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	if err := b.logic.AddToFavorites(ctx, reader, book); err != nil {
+		switch {
+		case errors.Is(err, exceptions.ErrDeadline):
+			b.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+		case errors.Is(err, exceptions.ErrReaderNotFound), errors.Is(err, exceptions.ErrBookNotFound):
+			b.resp.Write(rw, req, http.StatusBadRequest, exceptions.ErrRecordNotFound)
+		case errors.Is(err, exceptions.ErrRecordExists):
+			b.resp.Write(rw, req, http.StatusConflict, exceptions.ErrRecordExists)
+		default:
+			b.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+		}
+
+		b.resp.Errorw("Failed adding book to favorites.", "error", err)
+
+		return
+	}
+
+	msg := response{Message: "Book successfully imported fo favorites list."}
+	b.resp.Write(rw, req, http.StatusCreated, msg)
+	b.resp.Debugf(msg.Message)
+}
+
+func (b Book) AddToWishlist(rw http.ResponseWriter, req *http.Request) {
+	var book models.Book
+	if err := b.resp.DecodeBody(req, &book); err != nil {
+		b.resp.Write(rw, req, http.StatusBadRequest, ErrDecoding)
+		b.resp.Errorw("Failed decoding book data from request.", "error", err)
+
+		return
+	}
+
+	token := retrieveToken[models.AccessToken](req)
+	reader := models.Reader{ID: token.ReaderID}
+
+	if book.ID == "" || reader.ID == "" {
+		msg := response{Message: "ReaderID and BookID  are required fields."}
+		b.resp.Write(rw, req, http.StatusGatewayTimeout, msg)
+		b.resp.Debugf(msg.Message)
+
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	if err := b.logic.AddToWishlist(ctx, reader, book); err != nil {
+		switch {
+		case errors.Is(err, exceptions.ErrDeadline):
+			b.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+		case errors.Is(err, exceptions.ErrReaderNotFound), errors.Is(err, exceptions.ErrBookNotFound):
+			b.resp.Write(rw, req, http.StatusBadRequest, exceptions.ErrRecordNotFound)
+		case errors.Is(err, exceptions.ErrRecordExists):
+			b.resp.Write(rw, req, http.StatusConflict, exceptions.ErrRecordExists)
+		default:
+			b.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+		}
+
+		b.resp.Errorw("Failed adding book to wishlist.", "error", err)
+
+		return
+	}
+
+	msg := response{Message: "Book successfully imported fo wishlist."}
+	b.resp.Write(rw, req, http.StatusCreated, msg)
+	b.resp.Debugf(msg.Message)
 }

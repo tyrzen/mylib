@@ -64,7 +64,7 @@ func (r responder) Write(rw http.ResponseWriter, req *http.Request, code int, da
 	if _, err := buf.WriteTo(rw); err != nil {
 		r.Errorw("Failed writing response from buffer.",
 			"object", data,
-			"error", fmt.Errorf("%w: %v", ErrWritingResponse, err),
+			"error", fmt.Errorf("%w: %w", ErrWritingResponse, err),
 		)
 	}
 }

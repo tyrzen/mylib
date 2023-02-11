@@ -49,3 +49,19 @@ func (b Book) FetchMany(ctx context.Context, filter models.DataFilter) ([]models
 
 	return books, nil
 }
+
+func (b Book) AddToFavorites(ctx context.Context, reader models.Reader, book models.Book) error {
+	if err := b.repo.AddToFavorites(ctx, reader, book); err != nil {
+		return fmt.Errorf("error adding book to favorites: %w", err)
+	}
+
+	return nil
+}
+
+func (b Book) AddToWishlist(ctx context.Context, reader models.Reader, book models.Book) error {
+	if err := b.repo.AddToWishlist(ctx, reader, book); err != nil {
+		return fmt.Errorf("error adding book to wishlist: %w", err)
+	}
+
+	return nil
+}

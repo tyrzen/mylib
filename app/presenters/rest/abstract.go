@@ -18,4 +18,6 @@ type BookLogic interface {
 	Import(context.Context, models.Book) error
 	Fetch(context.Context, models.Book) (models.Book, error)
 	FetchMany(context.Context, models.DataFilter) ([]models.Book, error)
+	AddToFavorites(context.Context, models.Reader, models.Book) error
+	AddToWishlist(context.Context, models.Reader, models.Book) error
 }
