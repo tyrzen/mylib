@@ -275,7 +275,7 @@ func (b Book) ExportToCSV(rw http.ResponseWriter, req *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 
-	buf, err := b.logic.ExportToCSV(ctx, *filter)
+	csvArr, err := b.logic.ExportToCSV(ctx, *filter)
 	if err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
@@ -293,7 +293,7 @@ func (b Book) ExportToCSV(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "text/csv")
 	rw.Header().Set("Transfer-Encoding", "chunked")
 
-	if _, err := buf.WriteTo(rw); err != nil {
+	if _, err := rw.Write(csvArr); err != nil {
 		b.resp.Errorw("Failed writing response from buffer.", "error", err)
 
 		return
