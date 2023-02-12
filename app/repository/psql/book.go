@@ -82,8 +82,6 @@ func (b Book) GetByID(ctx context.Context, book models.Book) (models.Book, error
 }
 
 func (b Book) GetMany(ctx context.Context, filter models.DataFilter) ([]models.Book, error) {
-	var books []models.Book
-
 	const SQL = `SELECT id, author_ID, title, genre, rate, size, year
 				 FROM books $1`
 
@@ -102,6 +100,8 @@ func (b Book) GetMany(ctx context.Context, filter models.DataFilter) ([]models.B
 	}
 
 	defer rows.Close()
+
+	var books []models.Book
 
 	for rows.Next() {
 		var book models.Book
@@ -130,8 +130,12 @@ func (b Book) GetMany(ctx context.Context, filter models.DataFilter) ([]models.B
 		books = append(books, book)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error occurred during iteration: %w", err)
+	}
+
 	if err := rows.Close(); err != nil {
-		return nil, fmt.Errorf("%w: %w", exceptions.ErrUnexpected, err)
+		return nil, fmt.Errorf("error while closing connection: %w", err)
 	}
 
 	return books, nil

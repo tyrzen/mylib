@@ -20,7 +20,7 @@ func NewReader(db *sql.DB) *Reader {
 // Add adds models.Reader entity.
 func (r Reader) Add(ctx context.Context, reader models.Reader) error {
 	const SQL = `INSERT INTO readers (id, first_name, last_name, email, password, role, created_at)
-					VALUES(GEN_RANDOM_UUID(), $1, $2, $3, $4, $5, NOW());`
+					VALUES(GEN_RANDOM_UUID(), $1, $2, LOWER($3), $4, $5, NOW());`
 
 	_, err := r.ExecContext(ctx, SQL,
 		reader.FirstName, // $1

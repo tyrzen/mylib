@@ -15,4 +15,4 @@ const (
 	requestContextKey
 )
 
-const queryTimeout = 5 * time.Second
+const queryTimeout = 3 * time.Second

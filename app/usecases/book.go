@@ -1,9 +1,13 @@
 package usecases
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"fmt"
+	"strings"
 
+	"github.com/delveper/mylib/app/exceptions"
 	"github.com/delveper/mylib/app/models"
 )
 
@@ -48,6 +52,43 @@ func (b Book) FetchMany(ctx context.Context, filter models.DataFilter) ([]models
 	}
 
 	return books, nil
+}
+
+func (b Book) ExportToCSV(ctx context.Context, filter models.DataFilter) (*strings.Builder, error) {
+	var buf bytes.Buffer
+
+	books, err := b.repo.GetMany(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching book records: %w", err)
+	}
+
+	header := []string{"ID", "AuthorID", "Title", "Genre", "Rate", "Size", "Year"}
+
+	writer := csv.NewWriter(&buf)
+	if err := writer.Write(header); err != nil {
+		return nil, fmt.Errorf("error writing header to csv: %w: %w", exceptions.ErrWritingRecord, err)
+	}
+
+	for i, book := range books {
+		row := []string{
+			book.ID,
+			book.AuthorID,
+			book.Title,
+			book.Genre,
+			fmt.Sprintf("%d", book.Rate),
+			fmt.Sprintf("%d", book.Size),
+			fmt.Sprintf("%d", book.Year),
+		}
+		if err := writer.Write(row); err != nil {
+			return nil, fmt.Errorf("error writing %d row to csv: %w: %w", i+1, exceptions.ErrWritingRecord, err)
+		}
+	}
+
+	if err := writer.Error(); err != nil {
+		return nil, fmt.Errorf("error flushing csv writer: %w: %w", exceptions.ErrWritingRecord, err)
+	}
+
+	return buf, nil
 }
 
 func (b Book) AddToFavorites(ctx context.Context, reader models.Reader, book models.Book) error {

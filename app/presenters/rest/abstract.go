@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"bytes"
 	"context"
 
 	"github.com/delveper/mylib/app/models"
@@ -18,6 +19,7 @@ type BookLogic interface {
 	Import(context.Context, models.Book) error
 	Fetch(context.Context, models.Book) (models.Book, error)
 	FetchMany(context.Context, models.DataFilter) ([]models.Book, error)
+	ExportToCSV(context.Context, models.DataFilter) (*bytes.Buffer, error)
 	AddToFavorites(context.Context, models.Reader, models.Book) error
 	AddToWishlist(context.Context, models.Reader, models.Book) error
 }

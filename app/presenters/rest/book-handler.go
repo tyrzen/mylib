@@ -42,15 +42,15 @@ func (b Book) Route(router chi.Router) {
 
 func (b Book) Create(rw http.ResponseWriter, req *http.Request) {
 	var book models.Book
-	if err := b.resp.DecodeBody(req, &book); err != nil {
-		b.resp.Write(rw, req, http.StatusBadRequest, ErrDecoding)
+	if err := b.resp.decodeBody(req, &book); err != nil {
+		b.resp.writeJSON(rw, req, http.StatusBadRequest, ErrDecoding)
 		b.resp.Errorw("Failed decoding book data from request.", "error", err)
 
 		return
 	}
 
 	if err := book.OK(); err != nil {
-		b.resp.Write(rw, req, http.StatusBadRequest, err)
+		b.resp.writeJSON(rw, req, http.StatusBadRequest, err)
 		b.resp.Debugw("Failed validating book.", "error", err)
 
 		return
@@ -62,11 +62,11 @@ func (b Book) Create(rw http.ResponseWriter, req *http.Request) {
 	if err := b.logic.Import(ctx, book); err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
-			b.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+			b.resp.writeJSON(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
 		case errors.Is(err, exceptions.ErrRecordNotFound):
-			b.resp.Write(rw, req, http.StatusExpectationFailed, fmt.Errorf("author : %w", exceptions.ErrRecordNotFound))
+			b.resp.writeJSON(rw, req, http.StatusExpectationFailed, fmt.Errorf("author : %w", exceptions.ErrRecordNotFound))
 		default:
-			b.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+			b.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}
 
 		b.resp.Errorw("Failed importing book.", "error", err)
@@ -75,7 +75,7 @@ func (b Book) Create(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	msg := response{Message: "Book imported successfully."}
-	b.resp.Write(rw, req, http.StatusCreated, msg)
+	b.resp.writeJSON(rw, req, http.StatusCreated, msg)
 	b.resp.Debugf(msg.Message)
 }
 
@@ -90,11 +90,11 @@ func (b Book) Find(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
-			b.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+			b.resp.writeJSON(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
 		case errors.Is(err, exceptions.ErrRecordNotFound):
-			b.resp.Write(rw, req, http.StatusExpectationFailed, exceptions.ErrRecordNotFound)
+			b.resp.writeJSON(rw, req, http.StatusExpectationFailed, exceptions.ErrRecordNotFound)
 		default:
-			b.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+			b.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}
 
 		b.resp.Errorw("Failed fetching book.", "error", err)
@@ -102,7 +102,7 @@ func (b Book) Find(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	b.resp.Write(rw, req, http.StatusOK, book)
+	b.resp.writeJSON(rw, req, http.StatusOK, book)
 	b.resp.Debugf("Book fetched successfully.")
 }
 
@@ -113,7 +113,7 @@ func (b Book) Find(rw http.ResponseWriter, req *http.Request) {
 func (b Book) FindMany(rw http.ResponseWriter, req *http.Request) {
 	filter, err := models.NewDataFilter[models.Book](req.URL)
 	if err != nil {
-		b.resp.Write(rw, req, http.StatusBadRequest, ErrInvalidQuery)
+		b.resp.writeJSON(rw, req, http.StatusBadRequest, ErrInvalidQuery)
 		b.resp.Errorw("Failed parsing query from request URL.", "error", err)
 
 		return
@@ -121,6 +121,10 @@ func (b Book) FindMany(rw http.ResponseWriter, req *http.Request) {
 
 	maxOnPage, err := strconv.Atoi(os.Getenv("BOOKS_MAX_ON_PAGE"))
 	if err != nil {
+		b.resp.writeJSON(rw, req, http.StatusBadRequest, exceptions.ErrUnexpected)
+		b.resp.Errorw("Failed parsing BOOKS_MAX_ON_PAGE.", "error", err)
+
+		return
 	}
 
 	delta := filter.Top - maxOnPage
@@ -133,12 +137,12 @@ func (b Book) FindMany(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
-			b.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+			b.resp.writeJSON(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
 			// not sure about that.
 		case errors.Is(err, exceptions.ErrRecordNotFound):
-			b.resp.Write(rw, req, http.StatusBadRequest, exceptions.ErrRecordNotFound)
+			b.resp.writeJSON(rw, req, http.StatusBadRequest, exceptions.ErrRecordNotFound)
 		default:
-			b.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+			b.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}
 
 		b.resp.Errorw("Failed fetching books.", "error", err)
@@ -147,6 +151,7 @@ func (b Book) FindMany(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	var nextLink string
+
 	if delta > 0 && len(books) == maxOnPage {
 		filter.Skip = maxOnPage
 		filter.Top = delta
@@ -162,14 +167,14 @@ func (b Book) FindMany(rw http.ResponseWriter, req *http.Request) {
 		NextLink: nextLink,
 	}
 
-	b.resp.Write(rw, req, http.StatusOK, resp)
+	b.resp.writeJSON(rw, req, http.StatusOK, resp)
 	b.resp.Debugf("Books fetched successfully.")
 }
 
 func (b Book) AddToFavorites(rw http.ResponseWriter, req *http.Request) {
 	var book models.Book
-	if err := b.resp.DecodeBody(req, &book); err != nil {
-		b.resp.Write(rw, req, http.StatusBadRequest, ErrDecoding)
+	if err := b.resp.decodeBody(req, &book); err != nil {
+		b.resp.writeJSON(rw, req, http.StatusBadRequest, ErrDecoding)
 		b.resp.Errorw("Failed decoding book data from request.", "error", err)
 
 		return
@@ -180,7 +185,7 @@ func (b Book) AddToFavorites(rw http.ResponseWriter, req *http.Request) {
 
 	if book.ID == "" || reader.ID == "" {
 		msg := response{Message: "ReaderID and BookID  are required fields."}
-		b.resp.Write(rw, req, http.StatusGatewayTimeout, msg)
+		b.resp.writeJSON(rw, req, http.StatusGatewayTimeout, msg)
 		b.resp.Debugf(msg.Message)
 
 		return
@@ -192,13 +197,15 @@ func (b Book) AddToFavorites(rw http.ResponseWriter, req *http.Request) {
 	if err := b.logic.AddToFavorites(ctx, reader, book); err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
-			b.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
-		case errors.Is(err, exceptions.ErrReaderNotFound), errors.Is(err, exceptions.ErrBookNotFound):
-			b.resp.Write(rw, req, http.StatusBadRequest, exceptions.ErrRecordNotFound)
+			b.resp.writeJSON(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+		case errors.Is(err, exceptions.ErrReaderNotFound):
+			b.resp.writeJSON(rw, req, http.StatusBadRequest, exceptions.ErrReaderNotFound)
+		case errors.Is(err, exceptions.ErrBookNotFound):
+			b.resp.writeJSON(rw, req, http.StatusBadRequest, exceptions.ErrBookNotFound)
 		case errors.Is(err, exceptions.ErrRecordExists):
-			b.resp.Write(rw, req, http.StatusConflict, exceptions.ErrRecordExists)
+			b.resp.writeJSON(rw, req, http.StatusConflict, exceptions.ErrRecordExists)
 		default:
-			b.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+			b.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}
 
 		b.resp.Errorw("Failed adding book to favorites.", "error", err)
@@ -207,14 +214,14 @@ func (b Book) AddToFavorites(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	msg := response{Message: "Book successfully imported fo favorites list."}
-	b.resp.Write(rw, req, http.StatusCreated, msg)
+	b.resp.writeJSON(rw, req, http.StatusCreated, msg)
 	b.resp.Debugf(msg.Message)
 }
 
 func (b Book) AddToWishlist(rw http.ResponseWriter, req *http.Request) {
 	var book models.Book
-	if err := b.resp.DecodeBody(req, &book); err != nil {
-		b.resp.Write(rw, req, http.StatusBadRequest, ErrDecoding)
+	if err := b.resp.decodeBody(req, &book); err != nil {
+		b.resp.writeJSON(rw, req, http.StatusBadRequest, ErrDecoding)
 		b.resp.Errorw("Failed decoding book data from request.", "error", err)
 
 		return
@@ -225,7 +232,7 @@ func (b Book) AddToWishlist(rw http.ResponseWriter, req *http.Request) {
 
 	if book.ID == "" || reader.ID == "" {
 		msg := response{Message: "ReaderID and BookID  are required fields."}
-		b.resp.Write(rw, req, http.StatusGatewayTimeout, msg)
+		b.resp.writeJSON(rw, req, http.StatusGatewayTimeout, msg)
 		b.resp.Debugf(msg.Message)
 
 		return
@@ -237,13 +244,13 @@ func (b Book) AddToWishlist(rw http.ResponseWriter, req *http.Request) {
 	if err := b.logic.AddToWishlist(ctx, reader, book); err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
-			b.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+			b.resp.writeJSON(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
 		case errors.Is(err, exceptions.ErrReaderNotFound), errors.Is(err, exceptions.ErrBookNotFound):
-			b.resp.Write(rw, req, http.StatusBadRequest, exceptions.ErrRecordNotFound)
+			b.resp.writeJSON(rw, req, http.StatusBadRequest, exceptions.ErrRecordNotFound)
 		case errors.Is(err, exceptions.ErrRecordExists):
-			b.resp.Write(rw, req, http.StatusConflict, exceptions.ErrRecordExists)
+			b.resp.writeJSON(rw, req, http.StatusConflict, exceptions.ErrRecordExists)
 		default:
-			b.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+			b.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}
 
 		b.resp.Errorw("Failed adding book to wishlist.", "error", err)
@@ -252,6 +259,45 @@ func (b Book) AddToWishlist(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	msg := response{Message: "Book successfully imported fo wishlist."}
-	b.resp.Write(rw, req, http.StatusCreated, msg)
+	b.resp.writeJSON(rw, req, http.StatusCreated, msg)
 	b.resp.Debugf(msg.Message)
+}
+
+func (b Book) ExportToCSV(rw http.ResponseWriter, req *http.Request) {
+	filter, err := models.NewDataFilter[models.Book](req.URL)
+	if err != nil {
+		b.resp.writeJSON(rw, req, http.StatusBadRequest, ErrInvalidQuery)
+		b.resp.Errorw("Failed parsing query from request URL.", "error", err)
+
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	buf, err := b.logic.ExportToCSV(ctx, *filter)
+	if err != nil {
+		switch {
+		case errors.Is(err, exceptions.ErrDeadline):
+			b.resp.writeJSON(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+		default:
+			b.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+		}
+
+		b.resp.Errorw("Failed exporting books to csv.", "error", err)
+
+		return
+	}
+
+	rw.Header().Set("Content-Disposition", "attachment; filename=books.csv")
+	rw.Header().Set("Content-Type", "text/csv")
+	rw.Header().Set("Transfer-Encoding", "chunked")
+
+	if _, err := buf.WriteTo(rw); err != nil {
+		b.resp.Errorw("Failed writing response from buffer.", "error", err)
+
+		return
+	}
+
+	b.resp.Debugf("Books exported to csv successfully.")
 }

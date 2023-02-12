@@ -1,13 +1,13 @@
-{"level":"INFO","time":"2023-02-11T15:31:11.403+0200","message":"Logger set up with level: debug"}
-{"level":"INFO","time":"2023-02-11T15:31:11.413+0200","message":"Connection to repo established."}
-{"level":"INFO","time":"2023-02-11T15:31:11.465+0200","message":"OK    00001_readers.sql"}
-{"level":"INFO","time":"2023-02-11T15:31:11.482+0200","message":"OK    00002_authors.sql"}
-{"level":"INFO","time":"2023-02-11T15:31:11.503+0200","message":"OK    00003_books.sql"}
-{"level":"INFO","time":"2023-02-11T15:31:11.515+0200","message":"OK    00004_favorites.sql"}
-{"level":"INFO","time":"2023-02-11T15:31:11.527+0200","message":"OK    00005_wishlist.sql"}
-{"level":"INFO","time":"2023-02-11T15:31:11.528+0200","message":"goose: no migrations to run. current version: 5\n"}
-{"level":"INFO","time":"2023-02-11T15:31:11.530+0200","message":"Repository layer initialized."}
-{"level":"INFO","time":"2023-02-11T15:31:11.530+0200","message":"Usecase layer initialized."}
-{"level":"INFO","time":"2023-02-11T15:31:11.531+0200","message":"RESTish layer initialized."}
-{"level":"INFO","time":"2023-02-11T15:31:11.531+0200","message":"Routes registered successfully."}
-{"level":"INFO","time":"2023-02-11T15:31:11.532+0200","message":"Server middleware set up."}
+{"level":"INFO","time":"2023-02-12T06:20:32.127+0200","message":"Logger set up with level: debug"}
+{"level":"INFO","time":"2023-02-12T06:20:32.136+0200","message":"Connection to repo established."}
+{"level":"INFO","time":"2023-02-12T06:20:32.183+0200","message":"OK    00001_readers.sql"}
+{"level":"INFO","time":"2023-02-12T06:20:32.197+0200","message":"OK    00002_authors.sql"}
+{"level":"INFO","time":"2023-02-12T06:20:32.227+0200","message":"OK    00003_books.sql"}
+{"level":"INFO","time":"2023-02-12T06:20:32.239+0200","message":"OK    00004_favorites.sql"}
+{"level":"INFO","time":"2023-02-12T06:20:32.252+0200","message":"OK    00005_wishlist.sql"}
+{"level":"INFO","time":"2023-02-12T06:20:32.253+0200","message":"goose: no migrations to run. current version: 5\n"}
+{"level":"INFO","time":"2023-02-12T06:20:32.255+0200","message":"Repository layer initialized."}
+{"level":"INFO","time":"2023-02-12T06:20:32.255+0200","message":"Usecase layer initialized."}
+{"level":"INFO","time":"2023-02-12T06:20:32.256+0200","message":"RESTish layer initialized."}
+{"level":"INFO","time":"2023-02-12T06:20:32.257+0200","message":"Routes registered successfully."}
+{"level":"INFO","time":"2023-02-12T06:20:32.257+0200","message":"Server middleware set up."}

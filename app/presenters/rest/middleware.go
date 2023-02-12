@@ -75,9 +75,9 @@ func (r responder) WithAuth(next http.Handler) http.Handler {
 				errors.Is(err, exceptions.ErrTokenInvalid),
 				errors.Is(err, exceptions.ErrTokenNotFound),
 				errors.Is(err, exceptions.ErrTokenInvalidSigningMethod):
-				r.Write(rw, req, http.StatusUnauthorized, err)
+				r.writeJSON(rw, req, http.StatusUnauthorized, err)
 			default:
-				r.Write(rw, req, http.StatusBadRequest, err)
+				r.writeJSON(rw, req, http.StatusBadRequest, err)
 			}
 
 			r.Errorw("Failed to validate token.",
@@ -99,12 +99,12 @@ func (r responder) WithRole(role string) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			token := retrieveToken[models.AccessToken](req)
 			if token == nil {
-				r.Write(rw, req, http.StatusUnprocessableEntity, exceptions.ErrTokenNotFound)
+				r.writeJSON(rw, req, http.StatusUnprocessableEntity, exceptions.ErrTokenNotFound)
 				r.Errorw("Failed retrieve token from context.", "error", exceptions.ErrTokenNotFound)
 			}
 
 			if token.Role != role {
-				r.Write(rw, req, http.StatusUnauthorized, ErrPermissions)
+				r.writeJSON(rw, req, http.StatusUnauthorized, ErrPermissions)
 				r.Infow("Failed check permissions.", "error", ErrPermissions)
 			}
 

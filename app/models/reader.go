@@ -18,6 +18,7 @@ type Reader struct {
 	Password  string    `json:"password" revalid:"^[[:graph:]]{8,256}$"`
 	Role      string    `json:"role"`
 	CreatedAt time.Time `json:"created_at"`
+	DeletedAt time.Time `json:"deleted_at"`
 }
 
 func (r *Reader) OK() error {

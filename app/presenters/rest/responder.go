@@ -17,7 +17,7 @@ type response struct {
 	Details string `json:"details,omitempty"`
 }
 
-func (r responder) DecodeBody(req *http.Request, data any) (err error) {
+func (r responder) decodeBody(req *http.Request, data any) (err error) {
 	defer func() {
 		if e := req.Body.Close(); e != nil {
 			r.Errorw("error while closing request body", "error", err)
@@ -31,13 +31,13 @@ func (r responder) DecodeBody(req *http.Request, data any) (err error) {
 	return nil
 }
 
-func (r responder) Write(rw http.ResponseWriter, req *http.Request, code int, data any) {
+func (r responder) writeJSON(rw http.ResponseWriter, req *http.Request, code int, data any) {
 	if data == nil && code != http.StatusNoContent {
 		r.Errorw("Failed writing response due nil data.",
 			"object", nil,
 			"error", ErrInvalidData,
 		)
-		r.Write(rw, req, http.StatusBadRequest, ErrInvalidData)
+		r.writeJSON(rw, req, http.StatusBadRequest, ErrInvalidData)
 
 		return
 	}
@@ -53,7 +53,7 @@ func (r responder) Write(rw http.ResponseWriter, req *http.Request, code int, da
 		r.Errorw("Failed encoding data to JSON.",
 			"object", data,
 			"error", err)
-		r.Write(rw, req, http.StatusInternalServerError, ErrEncoding)
+		r.writeJSON(rw, req, http.StatusInternalServerError, ErrEncoding)
 
 		return
 	}

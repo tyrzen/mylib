@@ -24,29 +24,25 @@ func NewReader(logic ReaderLogic, logger models.Logger) Reader {
 
 func (r Reader) Route(router chi.Router) {
 	router.Route("/readers", func(router chi.Router) {
-		router.Post("/", r.Create)
-	})
-
-	router.Route("/auth", func(router chi.Router) {
+		router.Post("/signup", r.Create)
 		router.Post("/login", r.Login)
 		router.With(r.resp.WithAuth).Post("/token", r.Refresh)
 		router.With(r.resp.WithAuth).Post("/logout", r.Logout)
 	})
-
 }
 
 // Create creates new models.Reader.
 func (r Reader) Create(rw http.ResponseWriter, req *http.Request) {
 	var reader models.Reader
-	if err := r.resp.DecodeBody(req, &reader); err != nil {
-		r.resp.Write(rw, req, http.StatusBadRequest, ErrDecoding)
+	if err := r.resp.decodeBody(req, &reader); err != nil {
+		r.resp.writeJSON(rw, req, http.StatusBadRequest, ErrDecoding)
 		r.resp.Errorw("Failed decoding reader data from request.", "error", err)
 
 		return
 	}
 
 	if err := reader.OK(); err != nil {
-		r.resp.Write(rw, req, http.StatusBadRequest, err)
+		r.resp.writeJSON(rw, req, http.StatusBadRequest, err)
 		r.resp.Debugw("Failed validating reader.", "error", err)
 
 		return
@@ -55,7 +51,7 @@ func (r Reader) Create(rw http.ResponseWriter, req *http.Request) {
 	reader.Normalize()
 
 	if err := reader.HashPassword(); err != nil {
-		r.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrHashing)
+		r.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrHashing)
 		r.resp.Errorw("Failed hashing readers password.", "error", err)
 
 		return
@@ -67,13 +63,13 @@ func (r Reader) Create(rw http.ResponseWriter, req *http.Request) {
 	if err := r.logic.SignUp(ctx, reader); err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
-			r.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+			r.resp.writeJSON(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
 		case errors.Is(err, exceptions.ErrDuplicateEmail):
-			r.resp.Write(rw, req, http.StatusConflict, exceptions.ErrDuplicateEmail)
+			r.resp.writeJSON(rw, req, http.StatusConflict, exceptions.ErrDuplicateEmail)
 		case errors.Is(err, exceptions.ErrDuplicateID):
-			r.resp.Write(rw, req, http.StatusConflict, exceptions.ErrDuplicateID)
+			r.resp.writeJSON(rw, req, http.StatusConflict, exceptions.ErrDuplicateID)
 		default:
-			r.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+			r.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}
 
 		r.resp.Errorw("Failed creating reader.", "error", err)
@@ -82,15 +78,15 @@ func (r Reader) Create(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	msg := response{Message: "Reader successfully created."}
-	r.resp.Write(rw, req, http.StatusCreated, msg)
+	r.resp.writeJSON(rw, req, http.StatusCreated, msg)
 	r.resp.Debugf(msg.Message)
 }
 
 // Login handles authorization process of created models.Reader.
 func (r Reader) Login(rw http.ResponseWriter, req *http.Request) {
 	var creds models.Credentials
-	if err := r.resp.DecodeBody(req, &creds); err != nil {
-		r.resp.Write(rw, req, http.StatusBadRequest, ErrDecoding)
+	if err := r.resp.decodeBody(req, &creds); err != nil {
+		r.resp.writeJSON(rw, req, http.StatusBadRequest, ErrDecoding)
 		r.resp.Errorw("Failed decoding reader data from request.", "error", err)
 
 		return
@@ -99,7 +95,7 @@ func (r Reader) Login(rw http.ResponseWriter, req *http.Request) {
 	creds.Normalize()
 
 	if err := creds.OK(); err != nil {
-		r.resp.Write(rw, req, http.StatusBadRequest, err)
+		r.resp.writeJSON(rw, req, http.StatusBadRequest, err)
 		r.resp.Debugf("Failed validating %T: %v", creds, err)
 
 		return
@@ -112,14 +108,14 @@ func (r Reader) Login(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
-			r.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+			r.resp.writeJSON(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
 		case errors.Is(err, exceptions.ErrTokenNotCreated):
-			r.resp.Write(rw, req, http.StatusBadGateway, exceptions.ErrTokenNotCreated)
+			r.resp.writeJSON(rw, req, http.StatusBadGateway, exceptions.ErrTokenNotCreated)
 		case errors.Is(err, exceptions.ErrRecordNotFound),
 			errors.Is(err, exceptions.ErrInvalidCredits):
-			r.resp.Write(rw, req, http.StatusUnauthorized, exceptions.ErrNotAuthorized)
+			r.resp.writeJSON(rw, req, http.StatusUnauthorized, exceptions.ErrNotAuthorized)
 		default:
-			r.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+			r.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}
 
 		r.resp.Debugw("Failed signup reader.", "error", err)
@@ -129,7 +125,7 @@ func (r Reader) Login(rw http.ResponseWriter, req *http.Request) {
 
 	setCookie(rw, refreshTokenKey, tokenPair.RefreshToken, tokenPair.ExpiresIn, "auth")
 
-	r.resp.Write(rw, req.WithContext(ctx), http.StatusOK, tokenPair)
+	r.resp.writeJSON(rw, req.WithContext(ctx), http.StatusOK, tokenPair)
 	r.resp.Debugf("Reader authorized successfully.")
 }
 
@@ -143,13 +139,13 @@ func (r Reader) Logout(rw http.ResponseWriter, req *http.Request) {
 	if err := r.logic.SignOut(ctx, *accessToken); err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
-			r.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+			r.resp.writeJSON(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
 		case errors.Is(err, exceptions.ErrTokenExpired),
 			errors.Is(err, exceptions.ErrTokenInvalid),
 			errors.Is(err, exceptions.ErrTokenInvalidSigningMethod):
-			r.resp.Write(rw, req, http.StatusUnauthorized, err)
+			r.resp.writeJSON(rw, req, http.StatusUnauthorized, err)
 		default:
-			r.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+			r.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}
 
 		r.resp.Debugw("Failed signup reader.",
@@ -162,7 +158,7 @@ func (r Reader) Logout(rw http.ResponseWriter, req *http.Request) {
 	setCookie(rw, refreshTokenKey, "", -1, "")
 
 	msg := response{Message: "Reader logout successfully."}
-	r.resp.Write(rw, req, http.StatusOK, msg)
+	r.resp.writeJSON(rw, req, http.StatusOK, msg)
 	r.resp.Debugf(msg.Message)
 }
 
@@ -177,15 +173,15 @@ func (r Reader) Refresh(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
-			r.resp.Write(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+			r.resp.writeJSON(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
 		case errors.Is(err, exceptions.ErrTokenNotFound):
-			r.resp.Write(rw, req, http.StatusBadRequest, exceptions.ErrTokenNotFound)
+			r.resp.writeJSON(rw, req, http.StatusBadRequest, exceptions.ErrTokenNotFound)
 		case errors.Is(err, exceptions.ErrTokenNotCreated):
-			r.resp.Write(rw, req, http.StatusBadGateway, exceptions.ErrTokenNotCreated)
+			r.resp.writeJSON(rw, req, http.StatusBadGateway, exceptions.ErrTokenNotCreated)
 		case errors.Is(err, exceptions.ErrTokenInvalid):
-			r.resp.Write(rw, req, http.StatusForbidden, exceptions.ErrTokenInvalid)
+			r.resp.writeJSON(rw, req, http.StatusForbidden, exceptions.ErrTokenInvalid)
 		default:
-			r.resp.Write(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+			r.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}
 
 		r.resp.Debugw("Failed refresh readers tokens.",
@@ -197,6 +193,6 @@ func (r Reader) Refresh(rw http.ResponseWriter, req *http.Request) {
 
 	setCookie(rw, refreshTokenKey, tokenPair.RefreshToken, tokenPair.ExpiresIn, "auth")
 
-	r.resp.Write(rw, req.WithContext(ctx), http.StatusOK, tokenPair)
+	r.resp.writeJSON(rw, req.WithContext(ctx), http.StatusOK, tokenPair)
 	r.resp.Debugf("Readers tokens refreshed successfully.")
 }

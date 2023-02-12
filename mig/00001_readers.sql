@@ -9,12 +9,16 @@ CREATE TABLE readers
     email      VARCHAR(255) UNIQUE NOT NULL,
     password   CHAR(60)            NOT NULL,
     role       CHAR(16)                    DEFAULT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+    deleted_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NULL
 );
 
+CREATE INDEX IF NOT EXISTS readers_id_email_idx ON readers using BTREE(id, email) WHERE deleted_at IS NULL;
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP INDEX IF EXISTS readers_id_email_idx;
+
 DROP TABLE readers CASCADE;
 -- +goose StatementEnd

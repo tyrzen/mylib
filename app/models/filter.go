@@ -87,7 +87,7 @@ func (f *Filter) Insert(exp *FilterNode) {
 // that build on OData OptionFilter of given URL.
 // The input of OData query options will be validated moving along the process.
 func NewDataFilter[T any](URL *url.URL) (*DataFilter, error) {
-	data, err := getStructFieldData(*new(T))
+	data, err := getStructFieldData((*T)(nil))
 	if err != nil {
 		return nil, err
 	}
