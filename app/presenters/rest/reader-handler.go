@@ -113,7 +113,7 @@ func (r Reader) Login(rw http.ResponseWriter, req *http.Request) {
 			r.resp.writeJSON(rw, req, http.StatusBadGateway, exceptions.ErrTokenNotCreated)
 		case errors.Is(err, exceptions.ErrRecordNotFound),
 			errors.Is(err, exceptions.ErrInvalidCredits):
-			r.resp.writeJSON(rw, req, http.StatusUnauthorized, exceptions.ErrNotAuthorized)
+			r.resp.writeJSON(rw, req, http.StatusUnauthorized, ErrNotAuthorized)
 		default:
 			r.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}

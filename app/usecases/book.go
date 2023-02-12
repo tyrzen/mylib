@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"fmt"
 
+	"github.com/delveper/mylib/app/exceptions"
 	"github.com/delveper/mylib/app/models"
 )
 
@@ -56,6 +57,10 @@ func (b Book) ExportToCSV(ctx context.Context, filter models.DataFilter) ([]byte
 	books, err := b.repo.GetMany(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching book records: %w", err)
+	}
+
+	if len(books) == 0 {
+		return nil, fmt.Errorf("no content to show: %w", exceptions.ErrNoContent)
 	}
 
 	var buf bytes.Buffer

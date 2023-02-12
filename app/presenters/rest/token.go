@@ -23,7 +23,9 @@ func retrieveToken[T Token](req *http.Request) *T {
 }
 
 func retrieveJWT(req *http.Request) string {
-	for _, fn := range []func(*http.Request) string{
+	type getTokenFunc func(*http.Request) string
+
+	for _, fn := range []getTokenFunc{
 		tokenFromHeader,
 		tokenFromURL,
 		tokenFromCookie,

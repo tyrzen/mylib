@@ -30,6 +30,7 @@ func (b Book) Route(router chi.Router) {
 		Route("/books", func(router chi.Router) {
 			router.Get("/{id}", b.Find)
 			router.Get("/", b.FindMany)
+			router.Get("/download", b.DownloadCSV)
 			router.With(b.resp.WithRole("admin")).Post("/", b.Create)
 		})
 
@@ -263,7 +264,7 @@ func (b Book) AddToWishlist(rw http.ResponseWriter, req *http.Request) {
 	b.resp.Debugf(msg.Message)
 }
 
-func (b Book) ExportToCSV(rw http.ResponseWriter, req *http.Request) {
+func (b Book) DownloadCSV(rw http.ResponseWriter, req *http.Request) {
 	filter, err := models.NewDataFilter[models.Book](req.URL)
 	if err != nil {
 		b.resp.writeJSON(rw, req, http.StatusBadRequest, ErrInvalidQuery)
@@ -280,6 +281,8 @@ func (b Book) ExportToCSV(rw http.ResponseWriter, req *http.Request) {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):
 			b.resp.writeJSON(rw, req, http.StatusGatewayTimeout, exceptions.ErrDeadline)
+		case errors.Is(err, exceptions.ErrNoContent):
+			b.resp.writeJSON(rw, req, http.StatusNoContent, exceptions.ErrNoContent)
 		default:
 			b.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
 		}

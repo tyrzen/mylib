@@ -101,11 +101,15 @@ func (r responder) WithRole(role string) func(http.Handler) http.Handler {
 			if token == nil {
 				r.writeJSON(rw, req, http.StatusUnprocessableEntity, exceptions.ErrTokenNotFound)
 				r.Errorw("Failed retrieve token from context.", "error", exceptions.ErrTokenNotFound)
+
+				return
 			}
 
 			if token.Role != role {
 				r.writeJSON(rw, req, http.StatusUnauthorized, ErrPermissions)
 				r.Infow("Failed check permissions.", "error", ErrPermissions)
+
+				return
 			}
 
 			next.ServeHTTP(rw, req)
