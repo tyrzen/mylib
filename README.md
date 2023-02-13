@@ -26,6 +26,7 @@
 | [golangci-lint](https://github.com/golangci/golangci-lint) | Go liners aggregator    |
 | [golang-jwt](github.com/golang-jwt/jwt/v4)                 | JSON Web Tokens         |
 | [pgx](github.com/jackc/pgx/v5/stdlib)                      | postgres driver         |
+| [go-redis](github.com/go-redis/redis/v8)                   | redis client            |
 | [uuid](github.com/google/uuid)                             | UUID generator          |
 | [zap](go.uber.org/zap)                                     | logger                  |
 
