@@ -1,4 +1,4 @@
-# mylib
+# mylib - API based on REST and Clean Architecture principles.
 
 ## Structure
 
