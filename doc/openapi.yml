@@ -1,0 +1,16 @@
+openapi: 3.0.0
+
+
+info:
+paths:
+  /readerers:
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: https
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: [ ]
