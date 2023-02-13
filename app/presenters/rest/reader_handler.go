@@ -22,17 +22,17 @@ func NewReader(logic ReaderLogic, logger models.Logger) Reader {
 	}
 }
 
-func (r Reader) Route(router chi.Router) {
-	router.Route("/readers", func(router chi.Router) {
-		router.Post("/signup", r.Create)
-		router.Post("/login", r.Login)
-		router.With(r.resp.WithAuth).Post("/token", r.Refresh)
-		router.With(r.resp.WithAuth).Post("/logout", r.Logout)
+func (r Reader) Route(rtr chi.Router) {
+	rtr.Route("/readers", func(rtr chi.Router) {
+		rtr.Post("/signup", r.Register)
+		rtr.Post("/login", r.Login)
+		rtr.With(r.resp.WithAuth).Post("/token", r.Refresh)
+		rtr.With(r.resp.WithAuth).Post("/logout", r.Logout)
 	})
 }
 
-// Create creates new models.Reader.
-func (r Reader) Create(rw http.ResponseWriter, req *http.Request) {
+// Register creates new models.Reader.
+func (r Reader) Register(rw http.ResponseWriter, req *http.Request) {
 	var reader models.Reader
 	if err := r.resp.decodeBody(req, &reader); err != nil {
 		r.resp.writeJSON(rw, req, http.StatusBadRequest, ErrDecoding)
@@ -135,6 +135,12 @@ func (r Reader) Logout(rw http.ResponseWriter, req *http.Request) {
 	defer cancel()
 
 	accessToken := retrieveToken[models.AccessToken](req)
+	if accessToken == nil {
+		r.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+		r.resp.Errorf("Failed retrieve token from context.")
+
+		return
+	}
 
 	if err := r.logic.SignOut(ctx, *accessToken); err != nil {
 		switch {
@@ -164,12 +170,19 @@ func (r Reader) Logout(rw http.ResponseWriter, req *http.Request) {
 
 // Refresh handles process of token pair refreshment.
 func (r Reader) Refresh(rw http.ResponseWriter, req *http.Request) {
+	var refreshToken models.RefreshToken
+
+	if err := r.resp.decodeBody(req, &refreshToken); err != nil {
+		r.resp.writeJSON(rw, req, http.StatusBadRequest, ErrDecoding)
+		r.resp.Errorw("Failed decoding refresh token from request.", "error", err)
+
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 
-	refreshToken := retrieveToken[models.RefreshToken](req)
-
-	tokenPair, err := r.logic.Refresh(ctx, *refreshToken)
+	tokenPair, err := r.logic.Refresh(ctx, refreshToken)
 	if err != nil {
 		switch {
 		case errors.Is(err, exceptions.ErrDeadline):

@@ -9,26 +9,30 @@ import (
 	"strings"
 )
 
-// DataFilter build on of OData query options:
-// $filter. represents mandatory query option which supports operations: `and`, `or`, `eq`, `ne`, `gt`, `lt`, `ge`, `le`.
-// $orderby. optional param, represents sorting column which supports `acs` and `desc` operators.
-// $top. optional param, represents limit of items from the resource.
-// $skip. optional param, represents offset of records in the resource.
-// Names of fields MUST correspond to struct field names and should provide in case-sensitive format.
-// Example: /books?$filter=Rate lt 100 and Rate gte 400 and Genre eq 'Thriller'&$orderby=Title desc&$OptionTop=100&$skip=10
-// TODO: add following properties: `from`, `to` (in UTC format), `in` Sequences (ids of sequences).
+// DataFilter represents a set of [OData](https://www.odata.org/getting-started/basic-tutorial/#queryData)
+// query options to filter and sort data.
+// It supports the following query options:
+//   - $filter: optional parameter that represents a filter operation with operations: 'and', 'or', 'eq', 'ne', 'gt', 'lt', 'ge', 'le'.
+//   - $orderby: optional parameter that represents a sorting column with operators: 'asc' and 'desc'.
+//   - $top: optional parameter that represents a limit of items from the resource.
+//   - $skip: optional parameter that represents an offset of records in the resource.
+//
+// The names of fields must correspond to struct field names and should be provided in case-sensitive format.
+//
+// Example: http://localhost:8080/books?$filter=Author eq 'Papa Karlo' and Title eq 'Pinocchio'&$orderby=Title desc&$skip=1&$top=10
+/* TODO: add following properties: `from`, `to` (in UTC format), `in` Sequences (ids of sequences). */
 type DataFilter struct {
-	URL     *url.URL
-	Filter  Filter
+	Filter  *Filter
 	OrderBy string
 	Top     int
 	Skip    int
+	URL     *url.URL
 }
 
 // Filter represent linked lists of OData expressions.
 type Filter struct {
-	Raw  string
-	Head *FilterNode
+	RawQuery string
+	Head     *FilterNode
 }
 
 // FilterNode represents OData expression.
@@ -51,11 +55,51 @@ const (
 
 const defaultTagName = "sql"
 
+// NewDataFilter creates a new instance of *DataFilter of struct type T
+// based on the OData query options present in the specified URL.
+// The input of the OData query options will be validated during the process.
+func NewDataFilter[T any](u *url.URL) (*DataFilter, error) {
+	data, err := getStructFieldData(*new(T))
+	if err != nil {
+		return nil, err
+	}
+
+	filter, err := parseFilter(u, data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse %s: %w", OptionFilter, err)
+	}
+
+	orderBy, err := parseOrderBy(u, data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse %s: %w", OptionOrderBy, err)
+	}
+
+	top, err := parseTop(u)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse %s: %w", OptionTop, err)
+	}
+
+	skip, err := parseSkip(u)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse %s: %w", OptionSkip, err)
+	}
+
+	df := &DataFilter{
+		URL:     u,
+		Filter:  filter,
+		OrderBy: orderBy,
+		Top:     top,
+		Skip:    skip,
+	}
+
+	return df, nil
+}
+
 // UpdateURL makes query on top of parent URL.
 func (df *DataFilter) UpdateURL() {
 	q := df.URL.Query()
 
-	q.Set(OptionFilter, df.Filter.Raw)
+	q.Set(OptionFilter, df.Filter.RawQuery)
 
 	if df.Top != 0 {
 		q.Set(OptionTop, fmt.Sprintf("%v", df.Top))
@@ -68,8 +112,8 @@ func (df *DataFilter) UpdateURL() {
 	df.URL.RawQuery = q.Encode()
 }
 
-// Insert adds new expression to Filter chain.
-func (f *Filter) Insert(exp *FilterNode) {
+// insert adds new expression to Filter chain.
+func (f *Filter) insert(exp *FilterNode) {
 	if f.Head == nil {
 		f.Head = exp
 		return
@@ -83,57 +127,8 @@ func (f *Filter) Insert(exp *FilterNode) {
 	node.Next = exp
 }
 
-// NewDataFilter creates *DataFilter of struct type T
-// that build on OData OptionFilter of given URL.
-// The input of OData query options will be validated moving along the process.
-func NewDataFilter[T any](URL *url.URL) (*DataFilter, error) {
-	data, err := getStructFieldData((*T)(nil))
-	if err != nil {
-		return nil, err
-	}
-
-	filter, err := parseFilter(URL.String(), data)
-	if err != nil {
-		return nil, err
-	}
-
-	orderBy, err := parseOrderBy(URL.String(), data)
-	if err != nil {
-		return nil, err
-	}
-
-	top, err := parseTop(URL.String())
-	if err != nil {
-		return nil, err
-	}
-
-	skip, err := parseSkip(URL.String())
-	if err != nil {
-		return nil, err
-	}
-
-	return &DataFilter{
-		URL:     URL,
-		Filter:  *filter,
-		OrderBy: orderBy,
-		Top:     top,
-		Skip:    skip,
-	}, nil
-}
-
-// parseQueryOption parses value of given QueryOption from URL query parameters.
-func parseQueryOption(query, opt string) string {
-	pattern := fmt.Sprintf(`(?P<option>\%s=)(?P<value>[^&$]*)`, opt)
-	if match := regexp.MustCompile(pattern).
-		FindStringSubmatch(query); match != nil {
-		return match[2]
-	}
-
-	return ""
-}
-
-func parseSkip(url string) (int, error) {
-	query := parseQueryOption(url, OptionSkip)
+func parseSkip(u *url.URL) (int, error) {
+	query := u.Query().Get(OptionSkip)
 	if query == "" {
 		return 0, nil
 	}
@@ -146,8 +141,8 @@ func parseSkip(url string) (int, error) {
 	return val, nil
 }
 
-func parseTop(url string) (int, error) {
-	query := parseQueryOption(url, OptionTop)
+func parseTop(u *url.URL) (int, error) {
+	query := u.Query().Get(OptionTop)
 	if query == "" {
 		return 0, nil
 	}
@@ -160,8 +155,8 @@ func parseTop(url string) (int, error) {
 	return val, nil
 }
 
-func parseOrderBy(url string, fieldMap fieldData) (string, error) {
-	query := parseQueryOption(url, OptionOrderBy)
+func parseOrderBy(u *url.URL, fieldMap fieldData) (string, error) {
+	query := u.Query().Get(OptionOrderBy)
 	if query == "" {
 		return "", nil
 	}
@@ -204,8 +199,8 @@ func parseOrderBy(url string, fieldMap fieldData) (string, error) {
 	return query, nil
 }
 
-func parseFilter(url string, fieldMap fieldData) (*Filter, error) {
-	query := parseQueryOption(url, OptionFilter)
+func parseFilter(u *url.URL, fieldMap fieldData) (*Filter, error) {
+	query := u.Query().Get(OptionFilter)
 	if query == "" {
 		return nil, nil
 	}
@@ -226,15 +221,17 @@ func parseFilter(url string, fieldMap fieldData) (*Filter, error) {
 		"OR":  "OR",
 	}
 
-	var operList, conjList, fieldList []string
+	fieldList := make([]string, 0, 2*len(fieldMap))
 	for k, v := range fieldMap {
 		fieldList = append(fieldList, k, v)
 	}
 
+	operList := make([]string, 0, len(operMap))
 	for k := range operMap {
 		operList = append(operList, k)
 	}
 
+	conjList := make([]string, 0, len(conjMap))
 	for k := range conjMap {
 		conjList = append(conjList, k)
 	}
@@ -253,35 +250,34 @@ func parseFilter(url string, fieldMap fieldData) (*Filter, error) {
 	matches := re.FindAllStringSubmatch(query, -1)
 	groups := re.SubexpNames()
 
-	var fil = new(Filter)
-	fil.Raw = query
+	f := &Filter{RawQuery: query}
 
 	for _, match := range matches {
-		var node FilterNode
-
-		for i := 1; i < len(groups); i++ {
-			switch groups[i] {
+		node := FilterNode{}
+		skip := 1
+		for i, group := range groups[skip:] {
+			switch group {
 			case "field":
-				node.Field = fieldMap[match[i]]
+				node.Field = fieldMap[match[i+skip]]
 			case "operator":
-				node.Operator = operMap[match[i]]
+				node.Operator = operMap[match[i+skip]]
 			case "value":
-				node.Value = match[i]
+				node.Value = match[i+skip]
 			case "conjunction":
-				node.Conjunction = conjMap[match[i]]
+				node.Conjunction = conjMap[match[i+skip]]
 			}
 		}
 
-		fil.Insert(&node)
+		f.insert(&node)
 	}
 
-	return fil, nil
+	return f, nil
 }
 
 // getStructFieldData retrieves a map of struct field names
 // and tags of defaultTagName corresponding to them.
 func getStructFieldData(src any) (fieldData, error) {
-	var res = make(map[string]string, 0)
+	res := make(map[string]string, 0)
 
 	srcValue := reflect.Indirect(reflect.ValueOf(src))
 	if srcType := srcValue.Kind(); srcType != reflect.Struct {

@@ -83,11 +83,12 @@ func (b Book) GetByID(ctx context.Context, book models.Book) (models.Book, error
 
 func (b Book) GetMany(ctx context.Context, filter models.DataFilter) ([]models.Book, error) {
 	const SQL = `SELECT id, author_ID, title, genre, rate, size, year
-				 FROM books $1`
+				 FROM books
+				 `
 
-	query := evaluateQuery(filter)
+	query := SQL + "\n" + evalQuery(filter)
 
-	rows, err := b.QueryContext(ctx, SQL, query)
+	rows, err := b.QueryContext(ctx, query)
 	if err != nil {
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):

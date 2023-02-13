@@ -25,20 +25,18 @@ func NewBook(logic BookLogic, logger models.Logger) Book {
 	}
 }
 
-func (b Book) Route(router chi.Router) {
-	router.With(b.resp.WithAuth).
-		Route("/books", func(router chi.Router) {
-			router.Get("/{id}", b.Find)
-			router.Get("/", b.FindMany)
-			router.Get("/download", b.DownloadCSV)
-			router.With(b.resp.WithRole("admin")).Post("/", b.Create)
-		})
+func (b Book) Route(rtr chi.Router) {
+	rtr.With(b.resp.WithAuth).Route("/books", func(rtr chi.Router) {
+		rtr.With(b.resp.WithAdmin).Post("/", b.Create)
+		rtr.Get("/{id}", b.Find)
+		rtr.Get("/", b.FindMany)
+		rtr.Get("/download", b.Download)
+	})
 
-	router.With(b.resp.WithAuth).
-		Route("/readers/me", func(router chi.Router) {
-			router.Post("/favorites", b.AddToFavorites)
-			router.Post("/wishlist", b.AddToWishlist)
-		})
+	rtr.With(b.resp.WithAuth).Route("/readers/me/", func(rtr chi.Router) {
+		rtr.Post("/favorites", b.AddToFavorites)
+		rtr.Post("/wishlist", b.AddToWishlist)
+	})
 }
 
 func (b Book) Create(rw http.ResponseWriter, req *http.Request) {
@@ -182,6 +180,13 @@ func (b Book) AddToFavorites(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	token := retrieveToken[models.AccessToken](req)
+	if token == nil {
+		b.resp.writeJSON(rw, req, http.StatusInternalServerError, exceptions.ErrUnexpected)
+		b.resp.Errorf("Failed retrieve token from context.")
+
+		return
+	}
+
 	reader := models.Reader{ID: token.ReaderID}
 
 	if book.ID == "" || reader.ID == "" {
@@ -264,7 +269,7 @@ func (b Book) AddToWishlist(rw http.ResponseWriter, req *http.Request) {
 	b.resp.Debugf(msg.Message)
 }
 
-func (b Book) DownloadCSV(rw http.ResponseWriter, req *http.Request) {
+func (b Book) Download(rw http.ResponseWriter, req *http.Request) {
 	filter, err := models.NewDataFilter[models.Book](req.URL)
 	if err != nil {
 		b.resp.writeJSON(rw, req, http.StatusBadRequest, ErrInvalidQuery)

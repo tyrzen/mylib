@@ -89,8 +89,8 @@ func Run() {
 	logger.Infof("Routes registered successfully.")
 
 	handler := rest.ChainMiddlewares(router,
-		rest.WithRequestID,
 		rest.WithLogRequest(logger),
+		rest.WithoutPanic(logger),
 	)
 
 	logger.Infof("Server middleware set up.")

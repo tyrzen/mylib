@@ -6,10 +6,10 @@ import (
 	"github.com/delveper/mylib/app/models"
 )
 
-func evaluateQuery(filter models.DataFilter) string {
+func evalQuery(filter models.DataFilter) string {
 	var query string
 
-	if filter.Filter.Head != nil {
+	if filter.Filter != nil {
 		query = "WHERE "
 
 		eval := func(node *models.FilterNode) string {

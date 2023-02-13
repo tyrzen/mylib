@@ -1,30 +1,10 @@
-{"level":"INFO","time":"2023-02-12T13:24:47.244+0200","message":"Logger set up with level: debug"}
-{"level":"INFO","time":"2023-02-12T13:24:47.254+0200","message":"Connection to repo established."}
-{"level":"INFO","time":"2023-02-12T13:24:47.265+0200","message":"goose: no migrations to run. current version: 5\n"}
-{"level":"INFO","time":"2023-02-12T13:24:47.267+0200","message":"Repository layer initialized."}
-{"level":"INFO","time":"2023-02-12T13:24:47.268+0200","message":"Usecase layer initialized."}
-{"level":"INFO","time":"2023-02-12T13:24:47.268+0200","message":"RESTish layer initialized."}
-{"level":"INFO","time":"2023-02-12T13:24:47.269+0200","message":"Routes registered successfully."}
-{"level":"INFO","time":"2023-02-12T13:24:47.269+0200","message":"Server middleware set up."}
-{"level":"DEBUG","time":"2023-02-12T13:25:49.392+0200","message":"Request:","id":"1cd2f4bc-1774-490d-8d57-8d066878da84","method":"POST","uri":"/auth/login","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:43336"}
-{"level":"DEBUG","time":"2023-02-12T13:25:59.317+0200","message":"Request:","id":"94a9cb9d-5148-4461-878b-77fd497c3ba4","method":"POST","uri":"/auth/login","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:43336"}
-{"level":"DEBUG","time":"2023-02-12T13:26:08.378+0200","message":"Request:","id":"85f7c7b4-27ad-4bf7-b6c3-d085021f6784","method":"POST","uri":"/readers/login","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:43336"}
-{"level":"DEBUG","time":"2023-02-12T13:26:08.386+0200","message":"Failed signup reader.","error":"errror fetching reader: record not found: sql: no rows in result set"}
-{"level":"DEBUG","time":"2023-02-12T13:26:27.785+0200","message":"Request:","id":"d63c8fb5-24f1-4ddb-9213-4861c2f70296","method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:43336"}
-{"level":"DEBUG","time":"2023-02-12T13:26:44.970+0200","message":"Request:","id":"b19e809e-ffbc-40e5-be9c-afea2688b94a","method":"POST","uri":"/readers","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:43336"}
-{"level":"DEBUG","time":"2023-02-12T13:26:55.125+0200","message":"Request:","id":"d8136128-0a02-446b-a190-778c6f02605f","method":"POST","uri":"/readers/signup","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:43336"}
-{"level":"DEBUG","time":"2023-02-12T13:26:55.268+0200","message":"Reader successfully created."}
-{"level":"DEBUG","time":"2023-02-12T13:27:01.298+0200","message":"Request:","id":"cc3fca2b-3bf0-4e62-bdcf-78ecfbbcb2db","method":"POST","uri":"/readers/login","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:43336"}
-{"level":"DEBUG","time":"2023-02-12T13:27:01.406+0200","message":"Reader authorized successfully."}
-{"level":"DEBUG","time":"2023-02-12T13:28:00.834+0200","message":"Request:","id":"4c181c28-47ee-4290-a018-ddbfb92333e8","method":"GET","uri":"/books/download","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:43336"}
-{"level":"DEBUG","time":"2023-02-12T13:28:00.835+0200","message":"Token validated.","token":{"ReaderID":"9491763a-9e4d-4e3a-84a7-14c4ca7fd29e","RefreshTokenID":"30c39cc3-59f3-4795-95e3-085360100f9d","Role":"                ","Expiry":1800000000000}}
-{"level":"ERROR","time":"2023-02-12T13:28:00.836+0200","message":"Failed parsing query from request URL.","error":"input value must be struct, got: invalid"}
-{"level":"DEBUG","time":"2023-02-12T13:30:06.897+0200","message":"Request:","id":"5c66ca25-a18b-48a8-b128-120688e2a61f","method":"GET","uri":"/books/download$filter=Gerne%20eq%20'thriller'","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:59230"}
-{"level":"DEBUG","time":"2023-02-12T13:30:06.898+0200","message":"Token validated.","token":{"ReaderID":"9491763a-9e4d-4e3a-84a7-14c4ca7fd29e","RefreshTokenID":"30c39cc3-59f3-4795-95e3-085360100f9d","Role":"                ","Expiry":1800000000000}}
-{"level":"ERROR","time":"2023-02-12T13:30:06.900+0200","message":"Failed fetching book.","error":"error fetching book record: unexpected error: ERROR: invalid input syntax for type uuid: \"download$filter=Gerne%20eq%20'thriller'\" (SQLSTATE 22P02)"}
-{"level":"DEBUG","time":"2023-02-12T13:30:44.667+0200","message":"Request:","id":"8e62202c-2926-4db0-ac98-b506a77b7bba","method":"GET","uri":"/books/download$filter=Genre%20eq%20'thriller'","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:59230"}
-{"level":"DEBUG","time":"2023-02-12T13:30:44.668+0200","message":"Token validated.","token":{"ReaderID":"9491763a-9e4d-4e3a-84a7-14c4ca7fd29e","RefreshTokenID":"30c39cc3-59f3-4795-95e3-085360100f9d","Role":"                ","Expiry":1800000000000}}
-{"level":"ERROR","time":"2023-02-12T13:30:44.669+0200","message":"Failed fetching book.","error":"error fetching book record: unexpected error: ERROR: invalid input syntax for type uuid: \"download$filter=Genre%20eq%20'thriller'\" (SQLSTATE 22P02)"}
-{"level":"DEBUG","time":"2023-02-12T13:31:05.342+0200","message":"Request:","id":"1461c652-46b2-4d13-96b9-3e4c8b5b79d1","method":"GET","uri":"/books/download$filter=ID%20eq%20'f17a9ccd-7fac-4ab2-85d6-29df067e70cc'","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:59230"}
-{"level":"DEBUG","time":"2023-02-12T13:31:05.344+0200","message":"Token validated.","token":{"ReaderID":"9491763a-9e4d-4e3a-84a7-14c4ca7fd29e","RefreshTokenID":"30c39cc3-59f3-4795-95e3-085360100f9d","Role":"                ","Expiry":1800000000000}}
-{"level":"ERROR","time":"2023-02-12T13:31:05.346+0200","message":"Failed fetching book.","error":"error fetching book record: unexpected error: ERROR: invalid input syntax for type uuid: \"download$filter=ID%20eq%20'f17a9ccd-7fac-4ab2-85d6-29df067e70cc'\" (SQLSTATE 22P02)"}
+{"level":"INFO","time":"2023-02-13T07:33:48.098+0200","message":"Logger set up with level: debug"}
+{"level":"INFO","time":"2023-02-13T07:33:48.164+0200","message":"Connection to repo established."}
+{"level":"INFO","time":"2023-02-13T07:33:48.176+0200","message":"goose: no migrations to run. current version: 5\n"}
+{"level":"INFO","time":"2023-02-13T07:33:48.184+0200","message":"Repository layer initialized."}
+{"level":"INFO","time":"2023-02-13T07:33:48.184+0200","message":"Usecase layer initialized."}
+{"level":"INFO","time":"2023-02-13T07:33:48.185+0200","message":"RESTish layer initialized."}
+{"level":"INFO","time":"2023-02-13T07:33:48.185+0200","message":"Routes registered successfully."}
+{"level":"INFO","time":"2023-02-13T07:33:48.186+0200","message":"Server middleware set up."}
+{"level":"DEBUG","time":"2023-02-13T07:33:54.646+0200","message":"Request:","id":"4582e74a-5217-4ed1-8238-8ab87a0863c8","method":"POST","uri":"/readers/token","user-agent":"PostmanRuntime/7.30.1","remote":"127.0.0.1:35112"}
+{"level":"DEBUG","time":"2023-02-13T07:33:54.646+0200","message":"Token validated.","token":{"ReaderID":"9491763a-9e4d-4e3a-84a7-14c4ca7fd29e","RefreshTokenID":"c5a2ee66-6474-45dc-8157-e642d5a41696","Role":"                ","Expiry":1800000000000}}
