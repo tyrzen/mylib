@@ -1,6 +1,7 @@
 # Environment variables
 .env
-
+# IDE files
+.idea
 # Temp files
 tmp
 
