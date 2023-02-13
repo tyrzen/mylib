@@ -5,37 +5,73 @@
 ```
 mylib/
 ├── app/
-│   ├── ent/
-│   │   └── user.go
-│   ├── repo/
-│   │   └── pg/
-│   │         └── user.sql
-│   ├── trans/
+│   ├── exceptions/
+│   │   └── errors.go
+│   ├── models/
+│   │   ├──abstract.go
+│   │   ├──author.go
+│   │   ├──book.go
+│   │   ├──credentials.go
+│   │   ├──filter.go
+│   │   ├──reader.go
+│   │   └──token.go
+│   ├── presenters/
 │   │   └── rest/
-│   │       ├── contracts.go
-│   │       ├── handler.go
-│   │       ├── resp.go
+│   │       ├── abstract.go
+│   │       ├── book_handler.go
+│   │       ├── const.go
+│   │       ├── cookie.go
+│   │       ├── errors.go
+│   │       ├── middleware.go
+│   │       ├── reader_handler.go
+│   │       ├── responder.go
 │   │       ├── router.go
 │   │       ├── server.go
-│   │       └── user.go
-│   └── logic/
-│       ├── contracts.go
-│       └── user.goo
-├── cfg/
-│   ├── config.go
-│   └── config.yml
+│   │       └── token.go
+│   ├─── repository/
+│   │    ├── psql/
+│   │    │   ├── author.go 
+│   │    │   ├── book.go
+│   │    │   ├── conn.go
+│   │    │   ├── filter.go
+│   │    │   └── reader.go
+│   │    └── rds/
+│   │        ├── client.go
+│   │        └── token.yml
+│   └── usecases/
+│       ├── abstract.go 
+│       ├── author.go   
+│       ├── book.go   
+│       ├── reader.go   
+│       └── token.go   
 ├── cmd/
-│   └── rest/
-│       └── main.go
+│   └── main.go 
+├── doc/
+│   └── openapi.yml 
 ├── lib/
-│   └── revalid/
-│       └── revalid.go
+│   ├── banderlog/
+│   │    └── logger.go
+│   ├── env/
+│   │    └── load.go
+│   ├── hash/
+│   │    └── hash.go
+│   ├── revalid/
+│   │    └── validator.go
+│   └── tokay/
+│       └── jwt.go
 ├── mig/
-│   └── ###_migration.sql
+│   ├── ######_*.sql
+│   └── mig.go 
+├── .env 
+├── .gitignore 
+├── .golangci.yml 
 ├── docker-compose.yml
 ├── Dockerfile
-├── README.md
-└── .env 
+├── go.mod
+├── LICENSE
+├── log.json
+├── Makefile
+└── README.md
 ```
 
 # Helpful materials
