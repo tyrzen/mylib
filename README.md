@@ -1,5 +1,34 @@
 # mylib - API based on REST and Clean Architecture principles.
 
+## Technologies
+
+| technology                                                     | purpose                                                                            |
+|----------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [Go](https://go.dev/)                                          | awesome programming language                                                       |
+| [Git](https://git-scm.com/)                                    | by default                                                                         |
+| [OpenAPI](https://www.openapis.org/)                           | used for describing the structure, operations, parameters, and responses of an API |
+| [Makefile](https://www.gnu.org/software/make/manual/make.html) | helps automate tasks, such as building, testing, and deploying applications.       |
+| [Docker](https://www.docker.com/)                              | used to containerize the application and its dependencies                          |
+| [Postgres](https://www.postgresql.org/)                        | system used to store and retrieve main data                                        |
+| [Redis](https://redis.io/)                                     | An in-memory data structure store user session data                                |
+| [OData](https://www.odata.org/)                                | used as protocol for querying and ~~updating~~ data using query parameters         |
+| [Letsencrypt](https://letsencrypt.org/)                        | open certificate authority                                                         |
+
+## Awesome Dependencies
+
+| package                                                    | description             |
+|------------------------------------------------------------|-------------------------|
+| [autocert](golang.org/x/crypto/acme/autocert)              | access to certificates  |
+| [bcrypt](golang.org/x/crypto/bcrypt)                       | hash validation         |
+| [chi](github.com/go-chi/chi/v5)                            | router                  |
+| [errors](github.com/pkg/errors)                            | graceful error-handling |
+| [goose](github.com/pressly/goose/v3)                       | SQL migrations          |
+| [golangci-lint](https://github.com/golangci/golangci-lint) | Go liners aggregator    |
+| [golang-jwt](github.com/golang-jwt/jwt/v4)                 | JSON Web Tokens         |
+| [pgx](github.com/jackc/pgx/v5/stdlib)                      | postgres driver         |
+| [uuid](github.com/google/uuid)                             | UUID generator          |
+| [zap](go.uber.org/zap)                                     | logger                  |
+
 ## Structure
 
 ```
@@ -74,8 +103,7 @@ mylib/
 └── README.md
 ```
 
-# Helpful materials
+## Helpful materials
 
 * [HTTP status codes with kittens](https://httpcats.com/)
-* [Letsencrypt](https://letsencrypt.org/) gives production ready certificates for free.
 
