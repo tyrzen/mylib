@@ -16,19 +16,20 @@
 
 ## Awesome Dependencies
 
-| package                                                    | description             |
-|------------------------------------------------------------|-------------------------|
-| [autocert](golang.org/x/crypto/acme/autocert)              | access to certificates  |
-| [bcrypt](golang.org/x/crypto/bcrypt)                       | hash validation         |
-| [chi](github.com/go-chi/chi/v5)                            | router                  |
-| [errors](github.com/pkg/errors)                            | graceful error-handling |
-| [goose](github.com/pressly/goose/v3)                       | SQL migrations          |
-| [golangci-lint](https://github.com/golangci/golangci-lint) | Go liners aggregator    |
-| [golang-jwt](github.com/golang-jwt/jwt/v4)                 | JSON Web Tokens         |
-| [pgx](github.com/jackc/pgx/v5/stdlib)                      | postgres driver         |
-| [go-redis](github.com/go-redis/redis/v8)                   | redis client            |
-| [uuid](github.com/google/uuid)                             | UUID generator          |
-| [zap](go.uber.org/zap)                                     | logger                  |
+| package                                                    | description                            |
+|------------------------------------------------------------|----------------------------------------|
+| [revalid](github.com/delveper/revalid)                     | my own struct validator based on regex |
+| [autocert](golang.org/x/crypto/acme/autocert)              | access to certificates                 |
+| [bcrypt](golang.org/x/crypto/bcrypt)                       | hash validation                        |
+| [chi](github.com/go-chi/chi/v5)                            | router                                 |
+| [errors](github.com/pkg/errors)                            | graceful error-handling                |
+| [goose](github.com/pressly/goose/v3)                       | SQL migrations                         |
+| [golangci-lint](https://github.com/golangci/golangci-lint) | Go liners aggregator                   |
+| [golang-jwt](github.com/golang-jwt/jwt/v4)                 | JSON Web Tokens                        |
+| [pgx](github.com/jackc/pgx/v5/stdlib)                      | postgres driver                        |
+| [go-redis](github.com/go-redis/redis/v8)                   | redis client                           |
+| [uuid](github.com/google/uuid)                             | UUID generator                         |
+| [zap](go.uber.org/zap)                                     | logger                                 |
 
 ## Structure
 

@@ -7,7 +7,7 @@ import (
 
 	"github.com/delveper/mylib/app/exceptions"
 	"github.com/delveper/mylib/lib/hash"
-	"github.com/delveper/mylib/lib/revalid"
+	"github.com/delveper/revalid"
 )
 
 type Reader struct {

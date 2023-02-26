@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/delveper/mylib/app/exceptions"
-	"github.com/delveper/mylib/lib/revalid"
+	"github.com/delveper/revalid"
 )
 
 type Credentials struct {
