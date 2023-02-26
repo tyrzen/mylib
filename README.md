@@ -106,5 +106,8 @@ mylib/
 
 ## Helpful materials
 
+* [Effective Go](https://go.dev/doc/effective_go)
+* [CodeReviewComments](https://github.com/golang/go/wiki/CodeReviewComments)
+* [Uber Go Style Guide](https://github.com/uber-go/guide/blob/master/style.md)
 * [HTTP status codes with kittens](https://httpcats.com/)
 

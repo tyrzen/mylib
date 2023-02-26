@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+// TODO: Clear is better than clever.
+
 // DataFilter represents a set of [OData](https://www.odata.org/getting-started/basic-tutorial/#queryData)
 // query options to filter and sort data.
 // It supports the following query options:

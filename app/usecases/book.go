@@ -37,6 +37,7 @@ func (b Book) Import(ctx context.Context, book models.Book) error {
 
 func (b Book) Fetch(ctx context.Context, book models.Book) (models.Book, error) {
 	book, err := b.repo.GetByID(ctx, book)
+
 	if err != nil {
 		return models.Book{}, fmt.Errorf("error fetching book record: %w", err)
 	}
